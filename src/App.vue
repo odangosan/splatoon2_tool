@@ -2,15 +2,10 @@
   <v-app>
     <v-toolbar app>
       <v-toolbar-title class="headline text-uppercase">
-        <span>Vuetify</span>
-        <span class="font-weight-light">MATERIAL DESIGN</span>
+        <span>SPLATOON2 UTILITY TOOL</span>
         <v-btn outline color="primary" dark @click="addUser()">add</v-btn>
         <v-btn outline color="primary" dark>desc</v-btn>
       </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-btn flat href="https://github.com/vuetifyjs/vuetify/releases/latest" target="_blank">
-        <span class="mr-2">Latest Release</span>
-      </v-btn>
       <v-divider class="mx-2" inset vertical></v-divider>
       <v-spacer></v-spacer>
       <v-dialog v-model="dialog" max-width="500px">
@@ -21,7 +16,6 @@
           <v-card-title>
             <span class="headline">{{ formTitle }}</span>
           </v-card-title>
-
           <v-card-text>
             <v-container grid-list-md>
               <v-layout wrap>
@@ -70,6 +64,8 @@
               class="elevation-1"
               select-all
               item-key="name"
+              :rows-per-page-items="rowsPerPageItems"
+              :pagination.sync="pagination"
             >
               <template v-slot:items="props">
                 <td>
@@ -145,11 +141,22 @@
 import Vue from "vue";
 import HelloWorld from "./components/HelloWorld";
 import { CounterModule } from "@/store/modules/Counter";
-import { StorableModule, User } from "@/store/modules/Storable";
+import { ConstantModule } from "@/store/modules/Constant";
+import { StorableModule, User, Game, History } from "@/store/modules/Storable";
 
 export default Vue.extend({
   data() {
     return {
+      pagination: {
+        rowsPerPage: 5
+      },
+      rowsPerPageItems: [
+        5,
+        10,
+        15,
+        25,
+        { text: "$vuetify.dataIterator.rowsPerPageAll", value: -1 }
+      ],
       selected: [],
       tabs: ["1", "2", "3"],
       text: "test",
@@ -229,6 +236,34 @@ export default Vue.extend({
           fat: 16.0,
           carbs: 49,
           protein: 3.9
+        },
+        {
+          name: "Jelly bean",
+          calories: 375,
+          fat: 0.0,
+          carbs: 94,
+          protein: 0.0
+        },
+        {
+          name: "Jelly bean",
+          calories: 375,
+          fat: 0.0,
+          carbs: 94,
+          protein: 0.0
+        },
+        {
+          name: "Jelly bean",
+          calories: 375,
+          fat: 0.0,
+          carbs: 94,
+          protein: 0.0
+        },
+        {
+          name: "Jelly bean",
+          calories: 375,
+          fat: 0.0,
+          carbs: 94,
+          protein: 0.0
         },
         {
           name: "Jelly bean",
@@ -337,6 +372,7 @@ export default Vue.extend({
   },
   created() {
     StorableModule.load();
+    ConstantModule.load();
     this.initialize();
   },
   components: {
