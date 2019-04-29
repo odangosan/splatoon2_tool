@@ -1,4 +1,3 @@
 module.exports = {
-  lintOnSave: false,
-  transpileDependencies: ["vuex-persist"]
+  lintOnSave: false
 };
