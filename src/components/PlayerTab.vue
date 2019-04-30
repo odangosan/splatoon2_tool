@@ -3,6 +3,8 @@
     <v-toolbar flat color="white">
       <v-text-field v-model="search" append-icon="search" label="Search" hide-details></v-text-field>
       <v-spacer></v-spacer>
+      <v-btn color="success" @click="reset">選択をリセット</v-btn>
+
       <v-dialog v-model="newPlayerDialog" max-width="600px">
         <template v-slot:activator="{ on }">
           <v-btn color="primary" dark class="mb-2" v-on="on">新しいプレイヤーを登録する</v-btn>
@@ -63,15 +65,12 @@
         </td>
       </template>
     </v-data-table>
-    <p>{{players}}</p>
-    <p>{{selectedPlayers}}</p>
   </div>
 </template>
 
 <script>
 import Vue from "vue";
 import { DataTableHeader } from "@/models/Defs";
-import { CounterModule } from "@/store/modules/Counter";
 import { ConstantModule } from "@/store/modules/Constant";
 import {
   StorableModule,
@@ -102,9 +101,13 @@ export default Vue.extend({
           align: "left",
           value: "name"
         }),
-        { text: "ランク", value: "rank" },
-        { text: "☆", value: "star", align: "left" },
-        { text: "コメント", value: "comment", align: "left" }
+        new DataTableHeader({ text: "ランク", value: "rank" }),
+        new DataTableHeader({ text: "☆", value: "star", align: "left" }),
+        new DataTableHeader({
+          text: "コメント",
+          value: "comment",
+          align: "left"
+        })
       ],
       editedIndex: NEW_ENTRY_INDEX,
       editedItem: new Player(),
@@ -115,7 +118,6 @@ export default Vue.extend({
     save() {
       if (this.editedIndex > NEW_ENTRY_INDEX) {
         StorableModule.updatePlayer(this.editedItem);
-        StorableModule.save();
       } else {
         StorableModule.addPlayer(this.editedItem);
       }
@@ -137,6 +139,9 @@ export default Vue.extend({
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = NEW_ENTRY_INDEX;
       }, 300);
+    },
+    reset() {
+      this.selectedPlayers = [];
     }
   },
   watch: {

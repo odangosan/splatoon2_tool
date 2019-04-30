@@ -85,9 +85,9 @@ export class StoredObject {
     histories: History[] = [];
     constructor() { }
 }
-const STORED_OBJECT_KEY: string = "STORED_OBJECT_KEY_MYDATA";
 @Module({ dynamic: true, store: store, name: "Storable", namespaced: true })
 export default class Storable extends VuexModule implements StoredObjectMethods {
+    STORED_OBJECT_KEY: string = "STORED_OBJECT_KEY_MYDATA";
     StoredObject: StoredObject = new StoredObject();
     get KEY() {
         // console.log(this.StoredObject);
@@ -103,43 +103,26 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     SET_PLAYERS_SELECTED(players: Player[]) {
         this.StoredObject.selectedPlayers = players;
     }
-    @Mutation
-    UPDATE_PLAYER(index: number, update: Player) {
-        console.log(index, update);
-        this.StoredObject.players[index] = update;
-        // this.StoredObject.players.splice(index, 1, update);
-        // this.StoredObject.players.splice(index, 1, update);
-        // this.StoredObject.players[index] = update;
-    }
+
     @Action({ rawError: true })
     updatePlayer(update: Player) {
-        console.log(update);
-        console.log(this.StoredObject.players);
-
-        // this.StoredObject.players = this.StoredObject.players.filter(e => {
-        //     return e.getId() != update.getId();
-        // })
         var index = this.StoredObject.players.findIndex(e => {
             return e.id == update.id;
         })
-        console.log(index);
-
-        // this.StoredObject.players.push(update);
         this.StoredObject.players.splice(index, 1, update);
-        // this.UPDATE_PLAYER(index, update)
+        this.save();
     }
 
     @Action
     save() {
         console.log("start save.");
         var storedObject = JSON.stringify(this.StoredObject);
-        console.log(storedObject);
-        localStorage.setItem(STORED_OBJECT_KEY, storedObject);
+        localStorage.setItem(this.STORED_OBJECT_KEY, storedObject);
     }
     @Action
     load() {
         console.log("start load.");
-        let storedObject = localStorage.getItem(STORED_OBJECT_KEY);
+        let storedObject = localStorage.getItem(this.STORED_OBJECT_KEY);
         var so: StoredObject = new StoredObject();
         if (storedObject != null) {
             so = JSON.parse(storedObject) as StoredObject;

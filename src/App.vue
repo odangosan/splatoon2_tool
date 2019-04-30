@@ -11,12 +11,24 @@
     <v-content>
       <v-tabs dark color="cyan" show-arrows>
         <v-tabs-slider color="red"></v-tabs-slider>
-        <v-tab :href="'#tab-main'">main</v-tab>
+        <v-tab :href="'#tab-stage'">ステージ一覧</v-tab>
+        <v-tab :href="'#tab-rule'">ルール一覧</v-tab>
+        <v-tab :href="'#tab-weapon'">ブキ一覧</v-tab>
+        <v-tab :href="'#tab-main'">プレイヤー一覧</v-tab>
         <!-- <v-tab v-for="i in selected" :key="i.name" :href="'#tab-' + i.name">{{ i.name }}</v-tab> -->
 
         <v-tabs-items>
+          <v-tab-item :value="'tab-stage'">
+            <stage-tab></stage-tab>
+          </v-tab-item>
+          <v-tab-item :value="'tab-rule'">
+            <rule-tab></rule-tab>
+          </v-tab-item>
+          <v-tab-item :value="'tab-weapon'">
+            <weapon-tab></weapon-tab>
+          </v-tab-item>
           <v-tab-item :value="'tab-main'">
-            <main-tab></main-tab>
+            <player-tab></player-tab>
           </v-tab-item>
           <!-- <v-tab-item v-for="i in selected" :key="i.name" :value="'tab-' + i.name">
             <div>{{selected}}</div>
@@ -29,9 +41,11 @@
 
  <script>
 import Vue from "vue";
-import MainTab from "@/components/MainTab";
+import PlayerTab from "@/components/PlayerTab";
+import WeaponTab from "@/components/Weapon";
+import RuleTab from "@/components/Rule";
+import StageTab from "@/components/Stage";
 import { DataTableHeader } from "@/models/Defs";
-import { CounterModule } from "@/store/modules/Counter";
 import { ConstantModule } from "@/store/modules/Constant";
 import {
   StorableModule,
@@ -48,6 +62,6 @@ export default Vue.extend({
     StorableModule.load();
     ConstantModule.load();
   },
-  components: { MainTab }
+  components: { PlayerTab, WeaponTab, RuleTab, StageTab }
 });
 </script>
