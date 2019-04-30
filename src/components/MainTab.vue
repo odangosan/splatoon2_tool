@@ -115,6 +115,7 @@ export default Vue.extend({
     save() {
       if (this.editedIndex > NEW_ENTRY_INDEX) {
         StorableModule.updatePlayer(this.editedItem);
+        StorableModule.save();
       } else {
         StorableModule.addPlayer(this.editedItem);
       }

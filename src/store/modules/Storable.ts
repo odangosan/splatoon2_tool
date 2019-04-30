@@ -2,14 +2,15 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import { StoredObjectMethods } from "@/models/StoredObject"
 
+Vue.use(Vuex);
 import { Module, VuexModule, Mutation, Action, getModule } from 'vuex-module-decorators'
-
+const store = new Vuex.Store({})
 
 class Entity {
     constructor() {
         this.id = this.getRandomId();
     }
-    private id: string;
+    id: string;
     createdAt = new Date();
     private getMS() {
         return new Date().getTime().toString();
@@ -29,9 +30,6 @@ class Entity {
             }
         }
         return chars.join("");
-    }
-    getId() {
-        return this.id;
     }
 
 }
@@ -88,7 +86,7 @@ export class StoredObject {
     constructor() { }
 }
 const STORED_OBJECT_KEY: string = "STORED_OBJECT_KEY_MYDATA";
-@Module({ name: "Storable", namespaced: true })
+@Module({ dynamic: true, store: store, name: "Storable", namespaced: true })
 export default class Storable extends VuexModule implements StoredObjectMethods {
     StoredObject: StoredObject = new StoredObject();
     get KEY() {
@@ -113,17 +111,21 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         // this.StoredObject.players.splice(index, 1, update);
         // this.StoredObject.players[index] = update;
     }
-    @Mutation
+    @Action({ rawError: true })
     updatePlayer(update: Player) {
         console.log(update);
+        console.log(this.StoredObject.players);
+
         // this.StoredObject.players = this.StoredObject.players.filter(e => {
         //     return e.getId() != update.getId();
         // })
         var index = this.StoredObject.players.findIndex(e => {
-            return e.getId() == update.getId();
+            return e.id == update.id;
         })
+        console.log(index);
+
         // this.StoredObject.players.push(update);
-        this.StoredObject.players[index] = update;
+        this.StoredObject.players.splice(index, 1, update);
         // this.UPDATE_PLAYER(index, update)
     }
 
@@ -151,10 +153,10 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     @Action
     removePlayer(player: Player) {
         this.StoredObject.players = this.StoredObject.players.filter(e => {
-            return e.getId() != player.getId();
+            return e.id != player.id;
         })
         this.StoredObject.selectedPlayers = this.StoredObject.selectedPlayers.filter(e => {
-            return e.getId() != player.getId();
+            return e.id != player.id;
         })
     }
 }

@@ -3,6 +3,7 @@ import Vuex from 'vuex';
 import Axios from 'axios';
 import { StoredObjectMethods } from "@/models/StoredObject"
 import { Module, VuexModule, Mutation, Action, getModule } from 'vuex-module-decorators'
+const store = new Vuex.Store({})
 
 export class StoredConstantObject {
     timestamp: number = 0;
@@ -12,7 +13,7 @@ export class StoredConstantObject {
     constructor() { }
 }
 const STORED_OBJECT_KEY = "STORED_OBJECT_KEY_CONSTANT"
-@Module({ name: "Constant", namespaced: true })
+@Module({ dynamic: true, store: store, name: "Constant", namespaced: true })
 export default class Constant extends VuexModule implements StoredObjectMethods {
     storedConstantObject: StoredConstantObject = new StoredConstantObject();
     storedConstantObjectSelected: StoredConstantObject = new StoredConstantObject();
