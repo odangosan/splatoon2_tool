@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import moment from "moment";
 import { StoredObjectMethods } from "@/models/StoredObject"
 
 Vue.use(Vuex);
@@ -11,7 +12,7 @@ class Entity {
         this.id = this.getRandomId();
     }
     id: string;
-    createdAt = new Date();
+    createdAt = moment();
     private getMS() {
         return new Date().getTime().toString();
     }
@@ -51,17 +52,66 @@ enum TEAM {
     A, B, WATCHING
 }
 
-import { StageRoot, Rule } from "@/store/modules/Constant"
-
+import { StageRoot, Rule, ConstantModule } from "@/store/modules/Constant"
+export class UsingPlayer {
+    player: Player;
+    weapon: WeaponRoot = new WeaponRoot();
+    assignRandomWeapon() {
+        let index = Math.floor(Math.random() * ConstantModule.weapons.length);
+        this.weapon = ConstantModule.weapons[index];
+    }
+    constructor(player: Player) {
+        this.player = player;
+    }
+}
 export class Game extends Entity {
-    teamA: Player[] = [];
-    teamB: Player[] = [];
+    teamA: UsingPlayer[] = [];
+    teamB: UsingPlayer[] = [];
+    spector: UsingPlayer[] = [];
     winning: TEAM = TEAM.A;
-    stage!: StageRoot;
-    rule!: Rule;
-    constructor(init: Partial<Game>) {
+    stage: StageRoot = new StageRoot();
+    rule: Rule = new Rule();
+    constructor(init?: Partial<Game>) {
         super();
-        Object.assign(this, init);
+        if (init)
+            Object.assign(this, init);
+    }
+    assignPlayers() {
+        // StorableModule.StoredObject.players
+        this.teamA.push(new UsingPlayer(new Player({ name: "1A" })))
+        this.teamA.push(new UsingPlayer(new Player({ name: "2A" })))
+        this.teamA.push(new UsingPlayer(new Player({ name: "3A" })))
+        this.teamA.push(new UsingPlayer(new Player({ name: "4A" })))
+        this.teamB.push(new UsingPlayer(new Player({ name: "1B" })))
+        this.teamB.push(new UsingPlayer(new Player({ name: "2B" })))
+        this.teamB.push(new UsingPlayer(new Player({ name: "3B" })))
+        this.teamB.push(new UsingPlayer(new Player({ name: "4B" })))
+        this.spector.push(new UsingPlayer(new Player({ name: "1S" })))
+        this.spector.push(new UsingPlayer(new Player({ name: "2S" })))
+    }
+    assignRandomWeapons() {
+        this.teamA.forEach(e => {
+            e.assignRandomWeapon();
+        })
+        this.teamB.forEach(e => {
+            e.assignRandomWeapon();
+        })
+    }
+    /**
+     * TODO:履歴を参照して重複を避ける
+     */
+    assignRandomStage() {
+        let index = Math.floor(Math.random() * ConstantModule.stages.length);
+        this.stage = ConstantModule.stages[index]
+        console.log(this.stage);
+    }
+    /**
+    * TODO:履歴を参照して重複を避ける
+    */
+    assignRandomRule() {
+        let index = Math.floor(Math.random() * ConstantModule.rules.length);
+        this.rule = ConstantModule.rules[index]
+        console.log(this.rule);
     }
 }
 
@@ -69,7 +119,7 @@ import { WeaponRoot } from "@/store/modules/Constant"
 
 export class History extends Entity {
     team!: TEAM;
-    winning!: TEAM;
+    winning?: TEAM;
     stage!: StageRoot;
     rule!: Rule;
     player!: Player;
@@ -96,7 +146,7 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         // return this.StoredObject.getKeys();
     }
     @Mutation
-    SET_VALUE(StoredObject: StoredObject) {
+    SET_STORED_OBJECT(StoredObject: StoredObject) {
         this.StoredObject = StoredObject;
     }
     @Mutation
@@ -114,6 +164,16 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     }
 
     @Action
+    refresh() {
+        this.delete();
+        this.load();
+    }
+    @Action
+    delete() {
+        localStorage.removeItem(this.STORED_OBJECT_KEY);
+        this.SET_STORED_OBJECT(new StoredObject());
+    }
+    @Action
     save() {
         console.log("start save.");
         var storedObject = JSON.stringify(this.StoredObject);
@@ -127,7 +187,8 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         if (storedObject != null) {
             so = JSON.parse(storedObject) as StoredObject;
         }
-        this.SET_VALUE(so);
+        this.SET_STORED_OBJECT(so);
+        this.save();
     }
     @Action
     addPlayer(player: Player) {
@@ -141,6 +202,10 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         this.StoredObject.selectedPlayers = this.StoredObject.selectedPlayers.filter(e => {
             return e.id != player.id;
         })
+    }
+    @Action
+    addGame(game: Game) {
+        this.StoredObject.games.push(game);
     }
 }
 

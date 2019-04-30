@@ -44,7 +44,7 @@ export default Vue.extend({
   data() {
     return {
       pagination: {
-        rowsPerPage: 15
+        rowsPerPage: -1
       },
       rowsPerPageItems: [
         5,

@@ -66,6 +66,7 @@ export default class Constant extends VuexModule implements StoredObjectMethods 
                 return e.key == "private";
             }) || new RuleRoot();
             this.storedObject.constant.rules = privateRules.rules;
+            this.storedObject.selected.rules = privateRules.rules;
         }
     }
     @Action
@@ -75,6 +76,7 @@ export default class Constant extends VuexModule implements StoredObjectMethods 
         this.storedObject.constant.weaponRoots = [];
         if (result.status = 200) {
             this.storedObject.constant.weaponRoots = result.data as WeaponRoot[];
+            this.storedObject.selected.weaponRoots = result.data as WeaponRoot[];
         }
     }
     @Action
@@ -84,8 +86,20 @@ export default class Constant extends VuexModule implements StoredObjectMethods 
         this.storedObject.constant.stageRoots = [];
         if (result.status = 200) {
             this.storedObject.constant.stageRoots = result.data as StageRoot[];
+            this.storedObject.selected.stageRoots = result.data as StageRoot[];
         }
     }
+
+    @Action
+    refresh() {
+        this.delete();
+        this.load();
+    }
+    @Action
+    delete() {
+        localStorage.removeItem(this.STORED_OBJECT_KEY);
+    }
+
     @Action
     async load() {
         console.log("start load.");
@@ -141,122 +155,62 @@ export default class Constant extends VuexModule implements StoredObjectMethods 
 
 export const ConstantModule = getModule(Constant);
 
-export interface Name {
-    de_DE: string;
-    en_GB: string;
-    en_US: string;
-    es_ES: string;
-    es_MX: string;
-    fr_CA: string;
-    fr_FR: string;
-    it_IT: string;
-    ja_JP: string;
-    nl_NL: string;
-    ru_RU: string;
-}
-
-export interface Name2 {
-    de_DE: string;
-    en_GB: string;
-    en_US: string;
-    es_ES: string;
-    es_MX: string;
-    fr_CA: string;
-    fr_FR: string;
-    it_IT: string;
-    ja_JP: string;
-    nl_NL: string;
-    ru_RU: string;
+export class Name {
+    de_DE: string = "";
+    en_GB: string = "";
+    en_US: string = "";
+    es_ES: string = "";
+    es_MX: string = "";
+    fr_CA: string = "";
+    fr_FR: string = "";
+    it_IT: string = "";
+    ja_JP: string = "";
+    nl_NL: string = "";
+    ru_RU: string = "";
 }
 
 export class Rule {
-    key!: string;
-    name!: Name2;
+    key: string = "";
+    name: Name = new Name();
 }
 
 export class RuleRoot {
     key: string = "";
-    name?: Name;
+    name: Name = new Name();
     rules: Rule[] = [];
 }
 
-
-
-export interface Category {
-    key: string;
-    name: Name2;
+export class Category {
+    key: string = "";
+    name: Name = new Name();
 }
 
-export interface Type {
-    key: string;
-    name: Name;
-    category: Category;
+export class Type {
+    key: string = "";
+    name: Name = new Name();
+    category: Category = new Category();
 }
 
-export interface Name3 {
-    de_DE: string;
-    en_GB: string;
-    en_US: string;
-    es_ES: string;
-    es_MX: string;
-    fr_CA: string;
-    fr_FR: string;
-    it_IT: string;
-    ja_JP: string;
-    nl_NL: string;
-    ru_RU: string;
+export class Sub {
+    key: string = "";
+    name: Name = new Name();
 }
 
-export interface Name4 {
-    de_DE: string;
-    en_GB: string;
-    en_US: string;
-    es_ES: string;
-    es_MX: string;
-    fr_CA: string;
-    fr_FR: string;
-    it_IT: string;
-    ja_JP: string;
-    nl_NL: string;
-    ru_RU: string;
-}
-
-export interface Sub {
-    key: string;
-    name: Name4;
-}
-
-export interface Name5 {
-    de_DE: string;
-    en_GB: string;
-    en_US: string;
-    es_ES: string;
-    es_MX: string;
-    fr_CA: string;
-    fr_FR: string;
-    it_IT: string;
-    ja_JP: string;
-    nl_NL: string;
-    ru_RU: string;
-}
-
-export interface Special {
-    key: string;
-    name: Name5;
+export class Special {
+    key: string = "";
+    name: Name = new Name();
 }
 
 export class WeaponRoot {
-    key!: string;
-    splatnet!: number;
-    type!: Type;
-    name!: Name3;
-    sub!: Sub;
-    special!: Special;
-    reskin_of!: string;
-    main_ref!: string;
+    key: string = "";
+    splatnet?: number;
+    type: Type = new Type();
+    name: Name = new Name();
+    sub: Sub = new Sub();
+    special: Special = new Special();
+    reskin_of?: string;
+    main_ref?: string;
 }
-
-
 
 export interface ShortName {
     de_DE: string;
@@ -278,9 +232,9 @@ export interface ReleaseAt {
 }
 
 export class StageRoot {
-    key!: string;
+    key: string = "";
     splatnet!: number;
-    name!: Name;
+    name: Name = new Name();
     short_name!: ShortName;
     area?: number;
     release_at!: ReleaseAt;
