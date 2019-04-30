@@ -8,43 +8,6 @@
       </v-toolbar-title>
       <v-divider class="mx-2" inset vertical></v-divider>
       <v-spacer></v-spacer>
-      <v-dialog v-model="dialog" max-width="500px">
-        <template v-slot:activator="{ on }">
-          <v-btn color="primary" dark class="mb-2" v-on="on">New Item</v-btn>
-        </template>
-        <v-card>
-          <v-card-title>
-            <span class="headline">{{ formTitle }}</span>
-          </v-card-title>
-          <v-card-text>
-            <v-container grid-list-md>
-              <v-layout wrap>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedItem.name" label="Dessert name"></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedItem.calories" label="Calories"></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedItem.fat" label="Fat (g)"></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedItem.carbs" label="Carbs (g)"></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedItem.protein" label="Protein (g)"></v-text-field>
-                </v-flex>
-              </v-layout>
-            </v-container>
-          </v-card-text>
-
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" flat @click="close">Cancel</v-btn>
-            <v-btn color="blue darken-1" flat @click="save">Save</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
     </v-toolbar>
 
     <v-content>
@@ -57,46 +20,90 @@
         <v-tabs-items>
           <v-tab-item :value="'tab-main'">
             <!-- <hello-world></hello-world> -->
-            <v-data-table
-              v-model="selected"
-              :headers="headers"
-              :items="desserts"
-              class="elevation-1"
-              select-all
-              item-key="name"
-              :rows-per-page-items="rowsPerPageItems"
-              :pagination.sync="pagination"
-            >
-              <template v-slot:items="props">
-                <td>
-                  <v-checkbox v-model="props.selected" primary hide-details></v-checkbox>
-                </td>
-                <!-- <td
+            <div>
+              <v-toolbar flat color="white">
+                <v-text-field v-model="search" append-icon="search" label="Search" hide-details></v-text-field>
+                <v-spacer></v-spacer>
+                <v-dialog v-model="dialog" max-width="500px">
+                  <template v-slot:activator="{ on }">
+                    <v-btn color="primary" dark class="mb-2" v-on="on">新しいプレイヤーを登録する</v-btn>
+                  </template>
+                  <v-card>
+                    <v-card-title>
+                      <span class="headline">{{ formTitle }}</span>
+                    </v-card-title>
+                    <v-card-text>
+                      <v-container grid-list-md>
+                        <v-layout wrap>
+                          <v-flex xs12 sm6 md4>
+                            <v-text-field v-model="editedItem.name" label="Dessert name"></v-text-field>
+                          </v-flex>
+                          <v-flex xs12 sm6 md4>
+                            <v-text-field v-model="editedItem.calories" label="Calories"></v-text-field>
+                          </v-flex>
+                          <v-flex xs12 sm6 md4>
+                            <v-text-field v-model="editedItem.fat" label="Fat (g)"></v-text-field>
+                          </v-flex>
+                          <v-flex xs12 sm6 md4>
+                            <v-text-field v-model="editedItem.carbs" label="Carbs (g)"></v-text-field>
+                          </v-flex>
+                          <v-flex xs12 sm6 md4>
+                            <v-text-field v-model="editedItem.protein" label="Protein (g)"></v-text-field>
+                          </v-flex>
+                        </v-layout>
+                      </v-container>
+                    </v-card-text>
+
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn color="blue darken-1" flat @click="close">Cancel</v-btn>
+                      <v-btn color="blue darken-1" flat @click="save">Save</v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+              </v-toolbar>
+              <v-data-table
+                v-model="selected"
+                :headers="headers"
+                :items="desserts"
+                class="elevation-1"
+                select-all
+                item-key="name"
+                :rows-per-page-items="rowsPerPageItems"
+                :pagination.sync="pagination"
+                :search="search"
+              >
+                <template v-slot:items="props">
+                  <td>
+                    <v-checkbox v-model="props.selected" primary hide-details></v-checkbox>
+                  </td>
+                  <!-- <td
                   v-for="header in headers"
                   class="text-xs-right"
                   :key="header.name"
-                >{{ props.item[header.value] }}</td>-->
-                <td>{{ props.item.name }}</td>
-                <td class="text-xs-right">{{ props.item.calories }}</td>
-                <td class="text-xs-right">{{ props.item.fat }}</td>
-                <td class="text-xs-right">{{ props.item.carbs }}</td>
-                <td class="text-xs-right">{{ props.item.protein }}</td>
-                <td class="justify-center layout px-0">
-                  <v-icon small class="mr-2" @click="editItem(props.item)">edit</v-icon>
-                  <v-icon small @click="deleteItem(props.item)">delete</v-icon>
-                </td>
-              </template>
-              <template v-slot:no-data>
-                <v-btn color="primary" @click="initialize">Reset</v-btn>
-              </template>
-            </v-data-table>
-            <!-- <v-card flat>
+                  >{{ props.item[header.value] }}</td>-->
+                  <td>{{ props.item.name }}</td>
+                  <td class="text-xs-right">{{ props.item.calories }}</td>
+                  <td class="text-xs-right">{{ props.item.fat }}</td>
+                  <td class="text-xs-right">{{ props.item.carbs }}</td>
+                  <td class="text-xs-right">{{ props.item.protein }}</td>
+                  <td class="justify-center layout px-0">
+                    <v-icon small class="mr-2" @click="editItem(props.item)">edit</v-icon>
+                    <v-icon small @click="deleteItem(props.item)">delete</v-icon>
+                  </td>
+                </template>
+                <template v-slot:no-data>
+                  <v-btn color="primary" @click="initialize">Reset</v-btn>
+                </template>
+              </v-data-table>
+              <!-- <v-card flat>
               <v-card-text>{{ text }}{{i}}</v-card-text>
               <v-btn @click="add()">add</v-btn>
-            </v-card>-->
-            <!-- <div>{{selected}}</div>
-            <div>{{desserts}}</div>-->
-            <span>{{users}}</span>
+              </v-card>-->
+              <!-- <div>{{selected}}</div>
+              <div>{{desserts}}</div>-->
+              <span>{{users}}</span>
+            </div>
           </v-tab-item>
           <v-tab-item v-for="i in selected" :key="i.name" :value="'tab-' + i.name">
             <v-data-table
@@ -106,6 +113,7 @@
               class="elevation-1"
               select-all
               item-key="name"
+              :search="search"
             >
               <template v-slot:items="props">
                 <td>
@@ -142,7 +150,12 @@ import Vue from "vue";
 import HelloWorld from "./components/HelloWorld";
 import { CounterModule } from "@/store/modules/Counter";
 import { ConstantModule } from "@/store/modules/Constant";
-import { StorableModule, User, Game, History } from "@/store/modules/Storable";
+import {
+  StorableModule,
+  Player,
+  Game,
+  History
+} from "@/store/modules/Storable";
 
 export default Vue.extend({
   data() {
@@ -157,6 +170,7 @@ export default Vue.extend({
         25,
         { text: "$vuetify.dataIterator.rowsPerPageAll", value: -1 }
       ],
+      search: "",
       selected: [],
       tabs: ["1", "2", "3"],
       text: "test",
