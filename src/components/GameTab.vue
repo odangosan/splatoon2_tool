@@ -11,15 +11,18 @@
       <v-btn color="info" @click="record('B')">B勝利</v-btn>
     </v-toolbar>
     <div>
-      <span>
-        {{temporaryGame.createdAt.format("MM/DD hh:mm:ss")}}:
-        {{temporaryGame.stage.name.ja_JP}}:
-        {{temporaryGame.rule.name.ja_JP}}
-      </span>
+      <div>
+        GAMEID:{{newGame.id|short}} |
+        DATE:{{newGame.createdAt|formatted}}
+      </div>
+      <div>
+        STAGE:{{newGame.stage.name.ja_JP}} |
+        RULE:{{newGame.rule.name.ja_JP}}
+      </div>
     </div>
     <v-data-table
       :headers="headers"
-      :items="temporaryGame.teamA"
+      :items="newGame.results"
       class="elevation-1"
       item-key="id"
       hide-headers
@@ -27,41 +30,9 @@
     >
       <template v-slot:items="props">
         <tr>
-          <td class="team">A</td>
+          <td class="team">{{ props.item.getTeamName()}}</td>
           <td class="name">{{ props.item.player.name }}</td>
           <td class="weaponName">{{ props.item.weapon!=null?props.item.weapon.name.ja_JP:""}}</td>
-        </tr>
-      </template>
-    </v-data-table>
-    <v-data-table
-      :headers="headers"
-      :items="temporaryGame.teamB"
-      class="elevation-1"
-      item-key="id"
-      hide-headers
-      hide-actions
-    >
-      <template v-slot:items="props">
-        <tr>
-          <td class="team">B</td>
-          <td class="name">{{ props.item.player.name }}</td>
-          <td class="weaponName">{{ props.item.weapon!=null?props.item.weapon.name.ja_JP:""}}</td>
-        </tr>
-      </template>
-    </v-data-table>
-    <v-data-table
-      :headers="headers"
-      :items="temporaryGame.spector"
-      class="elevation-1"
-      item-key="id"
-      hide-headers
-      hide-actions
-    >
-      <template v-slot:items="props">
-        <tr>
-          <td class="team">--</td>
-          <td class="name">{{ props.item.player.name }}</td>
-          <td class="weaponName">----------</td>
         </tr>
       </template>
     </v-data-table>
@@ -108,39 +79,34 @@ export default Vue.extend({
           value: "weapon",
           align: "left"
         })
-      ],
-      temporaryGame: new Game()
+      ]
     };
   },
   methods: {
-    create() {
-      let game = new Game();
-      game.assignPlayers();
-      this.temporaryGame = game;
-    },
     assignRandomWeapons() {
-      this.temporaryGame.assignRandomWeapons();
+      StorableModule.assignRandomWeapons();
     },
     assignRandomStage() {
-      this.temporaryGame.assignRandomStage();
+      StorableModule.assignRandomStage();
     },
     assignRandomRule() {
-      this.temporaryGame.assignRandomRule();
+      StorableModule.assignRandomRule();
     },
     assignAll() {
+      this.create();
       this.assignRandomWeapons();
       this.assignRandomStage();
       this.assignRandomRule();
     },
     record(team) {
-      if (team == "A") {
-        console.log("win A");
-      } else {
-        console.log("win B");
-      }
+      StorableModule.assignWinning(team);
+      confirm("結果を保存しますか？") && this.registering();
     },
-    save() {
-      StorableModule.addGame(this.temporaryGame);
+    create() {
+      StorableModule.initGame();
+    },
+    registering() {
+      StorableModule.registering();
     }
   },
   watch: {
@@ -153,9 +119,6 @@ export default Vue.extend({
     watchedStore() {
       return StorableModule.KEY;
     },
-    players() {
-      return StorableModule.StoredObject.players;
-    },
     selectedPlayers: {
       set: function(newValue) {
         StorableModule.SET_PLAYERS_SELECTED(newValue);
@@ -163,6 +126,12 @@ export default Vue.extend({
       get: function() {
         return StorableModule.StoredObject.selectedPlayers;
       }
+    },
+    newGame() {
+      return StorableModule.StoredObject.gameManager.newGame;
+    },
+    gameManager() {
+      return StorableModule.StoredObject.gameManager;
     }
   },
   created() {},
@@ -173,20 +142,4 @@ export default Vue.extend({
 });
 </script>
 
- <style lang="scss" scoped>
-table.v-table tbody td,
-table.v-table tbody th,
-table.v-datatable {
-  padding: 0px 4px;
-  height: 18px;
-  .name {
-    width: 90px;
-  }
-  .weaponName {
-    width: 250px;
-  }
-  .team {
-    width: 18px;
-  }
-}
-</style>
+

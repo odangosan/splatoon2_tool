@@ -13,9 +13,6 @@ class Entity {
     }
     id: string;
     createdAt = moment();
-    private getMS() {
-        return new Date().getTime().toString();
-    }
     private getRandomId() {
         // https://github.com/GoogleChrome/chrome-platform-analytics/blob/master/src/internal/identifier.js
         // const FORMAT: string = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
@@ -44,57 +41,82 @@ export class Player extends Entity {
         if (init)
             Object.assign(this, init);
     }
-    getRank() {
+    getRankConversion() {
         return this.rank + (this.star ? 99 : 0);
     }
 }
 enum TEAM {
-    A, B, WATCHING
+    A, B, WATCHING, NONE
 }
 
 import { StageRoot, Rule, ConstantModule } from "@/store/modules/Constant"
-export class UsingPlayer {
-    player: Player;
+
+export class Result extends Entity {
+    gameId!: string;
+    team: TEAM = TEAM.NONE;
+    winning: TEAM = TEAM.NONE;
+    stage: StageRoot = new StageRoot();
+    rule: Rule = new Rule();
+    player: Player = new Player();
     weapon: WeaponRoot = new WeaponRoot();
-    assignRandomWeapon() {
-        let index = Math.floor(Math.random() * ConstantModule.weapons.length);
-        this.weapon = ConstantModule.weapons[index];
+    constructor(init: Partial<Result>) {
+        super();
+        Object.assign(this, init);
     }
-    constructor(player: Player) {
-        this.player = player;
+    getTeamName() {
+        switch (this.team) {
+            case TEAM.A:
+                return TEAM[this.team];
+            case TEAM.B:
+                return TEAM[this.team];
+            default:
+                return "観";
+        }
+    }
+    isWin() {
+        return this.team == this.winning;
     }
 }
 export class Game extends Entity {
-    teamA: UsingPlayer[] = [];
-    teamB: UsingPlayer[] = [];
-    spector: UsingPlayer[] = [];
-    winning: TEAM = TEAM.A;
+    winning: TEAM = TEAM.NONE;
     stage: StageRoot = new StageRoot();
     rule: Rule = new Rule();
+    results: Result[] = [];
     constructor(init?: Partial<Game>) {
         super();
         if (init)
             Object.assign(this, init);
     }
+    createResult() {
+        let result = new Result({ gameId: this.id });
+        this.results.push(result);
+    }
     assignPlayers() {
         // StorableModule.StoredObject.players
-        this.teamA.push(new UsingPlayer(new Player({ name: "1A" })))
-        this.teamA.push(new UsingPlayer(new Player({ name: "2A" })))
-        this.teamA.push(new UsingPlayer(new Player({ name: "3A" })))
-        this.teamA.push(new UsingPlayer(new Player({ name: "4A" })))
-        this.teamB.push(new UsingPlayer(new Player({ name: "1B" })))
-        this.teamB.push(new UsingPlayer(new Player({ name: "2B" })))
-        this.teamB.push(new UsingPlayer(new Player({ name: "3B" })))
-        this.teamB.push(new UsingPlayer(new Player({ name: "4B" })))
-        this.spector.push(new UsingPlayer(new Player({ name: "1S" })))
-        this.spector.push(new UsingPlayer(new Player({ name: "2S" })))
+        //playersから10人まで選出し、resultに割り当てる、チーム分けをする
+        let tmpPlayers = [new Player({ name: "A1" }), new Player({ name: "A2" }), new Player({ name: "A3" }), new Player({ name: "A4" }), new Player({ name: "B1" }), new Player({ name: "B2" }), new Player({ name: "B3" }), new Player({ name: "B4" }), new Player({ name: "S1" }), new Player({ name: "S2" })];
+        for (let index = 0; index < tmpPlayers.length; index++) {
+            let result = new Result({ gameId: this.id });
+            result.player = tmpPlayers[index];
+            if (index < 4)
+                result.team = TEAM.A;
+            else if (index > 3 && index < 8)
+                result.team = TEAM.B;
+            else
+                result.team = TEAM.WATCHING;
+            this.results.push(result);
+        }
     }
+    /**
+    * TODO:履歴を参照して重複を避ける
+    */
     assignRandomWeapons() {
-        this.teamA.forEach(e => {
-            e.assignRandomWeapon();
-        })
-        this.teamB.forEach(e => {
-            e.assignRandomWeapon();
+        this.results.forEach(e => {
+            if (e.team != TEAM.WATCHING) {
+                let index = Math.floor(Math.random() * ConstantModule.weapons.length);
+                let weapon = ConstantModule.weapons[index];
+                e.weapon = weapon;
+            }
         })
     }
     /**
@@ -102,37 +124,65 @@ export class Game extends Entity {
      */
     assignRandomStage() {
         let index = Math.floor(Math.random() * ConstantModule.stages.length);
-        this.stage = ConstantModule.stages[index]
-        console.log(this.stage);
+        let stage = ConstantModule.stages[index]
+        this.stage = stage;
+        this.results.forEach(e => {
+            e.stage = stage;
+        })
     }
     /**
     * TODO:履歴を参照して重複を避ける
     */
     assignRandomRule() {
         let index = Math.floor(Math.random() * ConstantModule.rules.length);
-        this.rule = ConstantModule.rules[index]
+        let rule = ConstantModule.rules[index]
+        this.rule = rule;
+        this.results.forEach(e => {
+            e.rule = rule;
+        })
         console.log(this.rule);
+    }
+    assignWinning(winning: TEAM) {
+        this.winning = winning;
+        this.results.forEach(e => {
+            e.winning = winning;
+        })
     }
 }
 
 import { WeaponRoot } from "@/store/modules/Constant"
 
-export class History extends Entity {
-    team!: TEAM;
-    winning?: TEAM;
-    stage!: StageRoot;
-    rule!: Rule;
-    player!: Player;
-    weapon?: WeaponRoot;
-    constructor() {
-        super();
+export class GameManager {
+    games: Game[] = [];
+    newGame: Game = new Game();
+    constructor() { }
+    initGame() {
+        this.newGame = new Game();
+    }
+    assignPlayers() {
+        this.newGame.assignPlayers();
+    }
+    assignRandomRule() {
+        this.newGame.assignRandomRule();
+    }
+    assignRandomStage() {
+        this.newGame.assignRandomStage()
+    }
+    assignRandomWeapons() {
+        this.newGame.assignRandomWeapons()
+    }
+    registering() {
+        this.games.push(this.newGame);
+        this.initGame();
+    }
+    assignWinning(winning: TEAM) {
+        this.newGame.assignWinning(winning);
     }
 }
 export class StoredObject {
     players: Player[] = [];
     selectedPlayers: Player[] = [];
-    games: Game[] = [];
-    histories: History[] = [];
+    gameManager: GameManager = new GameManager();
     constructor() { }
 }
 @Module({ dynamic: true, store: store, name: "Storable", namespaced: true })
@@ -140,9 +190,16 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     STORED_OBJECT_KEY: string = "STORED_OBJECT_KEY_MYDATA";
     StoredObject: StoredObject = new StoredObject();
     get KEY() {
+        console.log(this.StoredObject.players);
+        console.log(this.StoredObject.selectedPlayers);
+        console.log(this.StoredObject.gameManager);
+
+
         // console.log(this.StoredObject);
         // return this.StoredObject.toString();
-        return this.StoredObject.players.toString() + this.StoredObject.selectedPlayers.toString() + this.StoredObject.games.toString() + this.StoredObject.histories.toString();
+        return this.StoredObject.players.toString() +
+            this.StoredObject.selectedPlayers.toString() +
+            this.StoredObject.gameManager.toString();
         // return this.StoredObject.getKeys();
     }
     @Mutation
@@ -169,6 +226,45 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         this.load();
     }
     @Action
+    initGame() {
+        this.StoredObject.gameManager.initGame();
+        this.StoredObject.gameManager.newGame.assignPlayers();
+        this.save();
+    }
+
+    @Action
+    assignRandomWeapons() {
+        this.StoredObject.gameManager.newGame.assignRandomWeapons();
+        this.save();
+    }
+    @Action
+    assignRandomStage() {
+        this.StoredObject.gameManager.newGame.assignRandomStage();
+        this.save();
+    }
+    @Action
+    assignRandomRule() {
+        this.StoredObject.gameManager.newGame.assignRandomRule();
+        this.save();
+    }
+    @Action
+    assignWinning(team: string) {
+        let winning = TEAM.NONE;
+        if (team == "A") {
+            winning = TEAM.A;
+            console.log("win A");
+        } else {
+            winning = TEAM.B;
+            console.log("win B");
+        }
+        this.StoredObject.gameManager.newGame.assignWinning(winning);
+    }
+    @Action
+    registering() {
+        this.StoredObject.gameManager.registering();
+        this.save();
+    }
+    @Action
     delete() {
         localStorage.removeItem(this.STORED_OBJECT_KEY);
         this.SET_STORED_OBJECT(new StoredObject());
@@ -183,11 +279,46 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     load() {
         console.log("start load.");
         let storedObject = localStorage.getItem(this.STORED_OBJECT_KEY);
-        var so: StoredObject = new StoredObject();
+        let newSO: StoredObject = new StoredObject();
         if (storedObject != null) {
-            so = JSON.parse(storedObject) as StoredObject;
+            let so = JSON.parse(storedObject) as StoredObject;
+            so.players.forEach(e => {
+                let p = new Player(e);
+                newSO.players.push(p);
+            })
+            so.selectedPlayers.forEach(e => {
+                let p = new Player(e);
+                newSO.selectedPlayers.push(p);
+            })
+
+            let g = so.gameManager.newGame
+            let game = new Game({ id: g.id, winning: g.winning, stage: g.stage, rule: g.rule });
+            g.results.forEach(r => {
+                let set = {
+                    gameId: r.gameId,
+                    team: r.team, winning: r.winning, stage: r.stage, rule: r.rule, weapon: r.weapon, player: new Player(r.player)
+                }
+                let result = new Result(set);
+                game.results.push(result);
+            })
+            newSO.gameManager.newGame = game;
+
+            so.gameManager.games.forEach(g => {
+                let game = new Game({ id: g.id, winning: g.winning, stage: g.stage, rule: g.rule });
+                g.results.forEach(r => {
+                    let set = {
+                        gameId: r.gameId,
+                        team: r.team, winning: r.winning, stage: r.stage, rule: r.rule, weapon: r.weapon, player: new Player(r.player)
+                    }
+                    let result = new Result(set);
+                    game.results.push(result);
+                })
+                newSO.gameManager.games.push(game);
+            })
         }
-        this.SET_STORED_OBJECT(so);
+        console.log(newSO);
+
+        this.SET_STORED_OBJECT(newSO);
         this.save();
     }
     @Action
@@ -202,10 +333,6 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         this.StoredObject.selectedPlayers = this.StoredObject.selectedPlayers.filter(e => {
             return e.id != player.id;
         })
-    }
-    @Action
-    addGame(game: Game) {
-        this.StoredObject.games.push(game);
     }
 }
 
