@@ -190,7 +190,7 @@ export default Vue.extend({
         } else {
           let a = new Aggregate();
           a.playerName = current.player.name;
-          a.battleCount = 1;
+          a.battleCount = current.isSpector() ? 0 : 1;
           a.winCount = current.isWin() ? 1 : 0;
           result.push(a);
         }
@@ -209,11 +209,8 @@ class Aggregate {
   battleCount = 0;
   winCount = 0;
   get winRate() {
-    try {
-      return this.winCount / this.battleCount;
-    } catch (e) {
-      return 0;
-    }
+    if (this.winCount == 0 || this.battleCount == 0) return 0;
+    return this.winCount / this.battleCount;
   }
 }
 </script>

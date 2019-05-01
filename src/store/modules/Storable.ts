@@ -120,11 +120,8 @@ class Aggregate {
     }
     player!: Player;
     winRate() {
-        try {
-            return this.winCount / this.battleCount;
-        } catch (e) {
-            return 0;
-        }
+        if (this.winCount == 0 || this.battleCount == 0) return 0;
+        return this.winCount / this.battleCount;
     }
 }
 
@@ -182,7 +179,7 @@ export class Game extends Entity {
                     result.push(new Aggregate({
                         player: current.player,
                         playerName: current.player.name,
-                        battleCount: 1,
+                        battleCount: current.isSpector() ? 0 : 1,
                         winCount: current.isWin() ? 1 : 0
                     }));
                 }
