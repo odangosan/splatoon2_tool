@@ -109,11 +109,12 @@ export class Result extends Entity {
 class Aggregate {
     playerId: string = "";
     playerName: string = "";
-    battleCount: number = 1;
+    battleCount: number = 0;
     winCount: number = 0;
     constructor(init: Partial<Aggregate>) {
         Object.assign(this, init);
     }
+    player!: Player;
 }
 export class Game extends Entity {
     winning: TEAM = TEAM.NONE;
@@ -129,16 +130,21 @@ export class Game extends Entity {
         let result = new Result({ gameId: this.id });
         this.results.push(result);
     }
+    private random(array: Aggregate[]) {
+        for (var i = array.length - 1; i > 0; i--) {
+            var r = Math.floor(Math.random() * (i + 1));
+            var tmp = array[i];
+            array[i] = array[r];
+            array[r] = tmp;
+        }
+        return array;
+    }
     assignPlayers() {
         // StorableModule.StoredObject.players
-        //playersから10人まで選出し、resultに割り当てる、チーム分けをする
-        let tmpPlayers = StorableModule.StoredObject.selectedPlayers.slice(0, StorableModule.StoredObject.selectedPlayers.length);
-        for (var i = tmpPlayers.length - 1; i > 0; i--) {
-            var r = Math.floor(Math.random() * (i + 1));
-            var tmp = tmpPlayers[i];
-            tmpPlayers[i] = tmpPlayers[r];
-            tmpPlayers[r] = tmp;
-        }
+        //playersから参戦数の低い順番に10人まで選出
+        //resultに割り当てる、チーム分けをする
+        let tmpPlayers = StorableModule.StoredObject.selectedPlayers.slice();
+
         //参加数集計
         const group = StorableModule.StoredObject.gameManager.flatResults().reduce((result: Aggregate[], current) => {
             const element = result.find((p) => p.playerName === current.player.name);
@@ -148,18 +154,47 @@ export class Game extends Entity {
                     element.winCount += current.isWin() ? 1 : 0; // sum
                 }
             } else {
-                result.push(new Aggregate({
-                    playerName: current.player.name,
-                    winCount: current.isWin() ? 1 : 0
-                }));
+                let find = tmpPlayers.find(e => {
+                    return e.name == current.player.name;
+                })
+                if (find)
+                    result.push(new Aggregate({
+                        player: current.player,
+                        playerName: current.player.name,
+                        battleCount: 1,
+                        winCount: current.isWin() ? 1 : 0
+                    }));
             }
             return result;
         }, []);
-        console.log(group);
-        let maxPlayer = tmpPlayers.length > 10 ? 10 : tmpPlayers.length;
+        tmpPlayers.forEach(e => {
+            let find = group.find(g => {
+                return g.playerName == e.name;
+            })
+            if (find == undefined) {
+                let aggregate = new Aggregate({ playerId: e.id, playerName: e.name })
+                group.push(aggregate);
+            }
+        })
+
+        group.sort((a, b) => {
+            return a.battleCount - b.battleCount;
+        })
+        let assignablePlayer = group.slice(0, 10);
+
+        let playablePlayer = [];
+        let spectorPlayer = [];
+        if (assignablePlayer.length <= 8) {
+            playablePlayer = this.random(assignablePlayer);
+        } else {
+            playablePlayer = this.random(assignablePlayer.slice(0, 8));
+            spectorPlayer = assignablePlayer.slice(8, 10);
+            playablePlayer = playablePlayer.concat(spectorPlayer);
+        }
+        let maxPlayer = playablePlayer.length > 10 ? 10 : playablePlayer.length;
         for (let index = 0; index < maxPlayer; index++) {
             let result = new Result({ gameId: this.id });
-            result.player = tmpPlayers[index];
+            result.player = playablePlayer[index].player;
             if (index > 7)
                 result.team = TEAM.WATCHING;
             else if (index % 2 == 0)
@@ -168,6 +203,9 @@ export class Game extends Entity {
                 result.team = TEAM.B;
             this.results.push(result);
         }
+        this.results.sort((a, b) => {
+            return a.team - b.team;
+        })
     }
     /**
     * TODO:履歴を参照して重複を避ける
