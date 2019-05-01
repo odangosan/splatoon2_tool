@@ -155,7 +155,7 @@ export default Vue.extend({
     importExcel() {
       this.importText.split("\n").forEach(e => {
         let t = e.split("\t");
-        if(t.length !=4)return;
+        if (t.length != 4) return;
         let p = new Player({
           name: t[1],
           rank: t[3] != "" ? t[3] : 1,

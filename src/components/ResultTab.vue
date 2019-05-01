@@ -51,6 +51,9 @@
           <td class="team">{{ props.item.getTeamName()}}</td>
           <td class="name">{{ props.item.player.name }}</td>
           <td class="weaponName">{{ props.item.weapon!=null?props.item.weapon.name.ja_JP:""}}</td>
+          <td class="justify-center layout px-0">
+            <v-icon class="mr-2" @click="deleteGame(props.item.gameId)">delete</v-icon>
+          </td>
         </tr>
       </template>
     </v-data-table>
@@ -156,6 +159,10 @@ export default Vue.extend({
   methods: {
     reset() {
       this.selectedResults = [];
+    },
+    deleteGame(gameId) {
+      confirm("この行の関連するゲーム戦績を削除しますか？") &&
+        StorableModule.removeGame(gameId);
     }
   },
   watch: {},

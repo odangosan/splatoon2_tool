@@ -222,12 +222,9 @@ export class Game extends Entity {
             let spectorPlayer = assignablePlayer.slice(8, 10);
             playablePlayer = playablePlayer.concat(spectorPlayer);
         }
-        console.log(playablePlayer);
         let maxPlayer = playablePlayer.length > 10 ? 10 : playablePlayer.length;
         for (let index = 0; index < maxPlayer; index++) {
             let result = new Result({ gameId: this.id });
-            console.log(playablePlayer[index].player);
-
             result.player = playablePlayer[index].player;
             if (index > 7)
                 result.team = TEAM.WATCHING;
@@ -278,7 +275,6 @@ export class Game extends Entity {
     * TODO:履歴を参照して重複を避ける
     */
     assignRandomRule() {
-        console.log(this.rule);
         let array = ConstantModule.storedObject.selected.rules.length == 0 ? ConstantModule.storedObject.constant.rules.slice() : ConstantModule.storedObject.selected.rules.slice();
 
         array = this.random(array);
@@ -405,10 +401,8 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         let winning = TEAM.NONE;
         if (team == "A") {
             winning = TEAM.A;
-            console.log("win A");
         } else {
             winning = TEAM.B;
-            console.log("win B");
         }
         this.StoredObject.gameManager.newGame.assignWinning(winning);
     }
@@ -477,7 +471,6 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
                 newSO.gameManager.games.push(game);
             })
         }
-        console.log(newSO);
 
         this.SET_STORED_OBJECT(newSO);
         this.save();
@@ -495,6 +488,13 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         this.StoredObject.selectedPlayers = this.StoredObject.selectedPlayers.filter(e => {
             return e.id != player.id;
         })
+    }
+    @Action
+    removeGame(gameId: string) {
+        this.StoredObject.gameManager.games = this.StoredObject.gameManager.games.filter(e => {
+            return e.id != gameId
+        });
+        this.save();
     }
 }
 
