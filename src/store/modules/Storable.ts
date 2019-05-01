@@ -22,6 +22,10 @@ class Entity {
         return this.id.substring(0, 8);
     }
 
+    get createdAtSt() {
+        return this.formattedCreatedAt();
+    }
+
     private getRandomId() {
         // https://github.com/GoogleChrome/chrome-platform-analytics/blob/master/src/internal/identifier.js
         // const FORMAT: string = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
@@ -115,6 +119,17 @@ class Aggregate {
         Object.assign(this, init);
     }
     player!: Player;
+    winRate() {
+        try {
+            return this.winCount / this.battleCount;
+        } catch (e) {
+            return 0;
+        }
+    }
+}
+
+enum SHUFFLE {
+    RANDOM, RATING
 }
 export class Game extends Entity {
     winning: TEAM = TEAM.NONE;
@@ -139,7 +154,13 @@ export class Game extends Entity {
         }
         return array;
     }
-    assignPlayers() {
+    private rating(array: Aggregate[]) {
+        array.sort((a, b) => {
+            return a.winRate() - b.winRate();
+        })
+        return array;
+    }
+    assignPlayers(shuffle: SHUFFLE) {
         // StorableModule.StoredObject.players
         //playersから参戦数の低い順番に10人まで選出
         //resultに割り当てる、チーム分けをする
@@ -185,12 +206,23 @@ export class Game extends Entity {
         let assignablePlayer = group.slice(0, 10);
 
         let playablePlayer = [];
-        let spectorPlayer = [];
         if (assignablePlayer.length <= 8) {
-            playablePlayer = this.random(assignablePlayer);
+            if (shuffle == SHUFFLE.RANDOM) {
+                playablePlayer = this.random(assignablePlayer);
+            } else if (shuffle == SHUFFLE.RATING) {
+                playablePlayer = this.rating(assignablePlayer);
+            } else {
+                playablePlayer = this.random(assignablePlayer);
+            }
         } else {
-            playablePlayer = this.random(assignablePlayer.slice(0, 8));
-            spectorPlayer = assignablePlayer.slice(8, 10);
+            if (shuffle == SHUFFLE.RANDOM) {
+                playablePlayer = this.random(assignablePlayer.slice(0, 8));
+            } else if (shuffle == SHUFFLE.RATING) {
+                playablePlayer = this.rating(assignablePlayer.slice(0, 8));
+            } else {
+                playablePlayer = this.random(assignablePlayer.slice(0, 8));
+            }
+            let spectorPlayer = assignablePlayer.slice(8, 10);
             playablePlayer = playablePlayer.concat(spectorPlayer);
         }
         console.log(playablePlayer);
@@ -264,9 +296,9 @@ export class GameManager {
     initGame() {
         this.newGame = new Game();
     }
-    assignPlayers() {
-        this.newGame.assignPlayers();
-    }
+    // assignPlayers() {
+    //     this.newGame.assignPlayers();
+    // }
     assignRandomRule() {
         this.newGame.assignRandomRule();
     }
@@ -330,13 +362,13 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
 
     @Action
     refresh() {
-        this.delete();
+        this.deleteAll();
         this.load();
     }
     @Action
-    initGame() {
+    initGame(shuffle: SHUFFLE = SHUFFLE.RANDOM) {
         this.StoredObject.gameManager.initGame();
-        this.StoredObject.gameManager.newGame.assignPlayers();
+        this.StoredObject.gameManager.newGame.assignPlayers(shuffle);
         this.save();
     }
 
@@ -373,9 +405,15 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         this.save();
     }
     @Action
-    delete() {
+    deleteAll() {
         localStorage.removeItem(this.STORED_OBJECT_KEY);
         this.SET_STORED_OBJECT(new StoredObject());
+    }
+    @Action
+    deleteResult() {
+        localStorage.removeItem(this.STORED_OBJECT_KEY);
+        this.StoredObject.gameManager = new GameManager();
+        this.SET_STORED_OBJECT(this.StoredObject);
     }
     @Action
     save() {

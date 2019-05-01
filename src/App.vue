@@ -6,7 +6,8 @@
       </v-toolbar-title>
       <v-divider class="mx-2" inset vertical></v-divider>
       <v-spacer></v-spacer>
-      <v-btn color="warning" @click="refresh()">データを消す</v-btn>
+      <v-btn color="warning" @click="refreshHistory()">戦績を消す</v-btn>
+      <v-btn color="warning" @click="refresh()">データを全て消す</v-btn>
     </v-toolbar>
 
     <v-content>
@@ -70,6 +71,9 @@ export default Vue.extend({
     return {};
   },
   methods: {
+    async refreshHistory() {
+      confirm("戦績を削除しますか？") && (await StorableModule.deleteResult());
+    },
     async refresh() {
       confirm("削除しますか？") &&
         ((await StorableModule.refresh()) && (await ConstantModule.refresh()));
