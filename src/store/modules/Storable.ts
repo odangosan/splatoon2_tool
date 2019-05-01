@@ -156,8 +156,8 @@ export class Game extends Entity {
             return result;
         }, []);
         console.log(group);
-
-        for (let index = 0; index < 10; index++) {
+        let maxPlayer = tmpPlayers.length > 10 ? 10 : tmpPlayers.length;
+        for (let index = 0; index < maxPlayer; index++) {
             let result = new Result({ gameId: this.id });
             result.player = tmpPlayers[index];
             if (index > 7)
