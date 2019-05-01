@@ -58,13 +58,24 @@
         <td>{{ props.item.name }}</td>
         <td class="text-xs-right">{{ props.item.rank }}</td>
         <td>{{ props.item.star?"★":"" }}</td>
-        <td>{{ props.item.comment }}</td>
         <td class="justify-center layout px-0">
           <v-icon small class="mr-2" @click="editItem(props.item)">edit</v-icon>
           <v-icon small @click="deleteItem(props.item)">delete</v-icon>
         </td>
       </template>
     </v-data-table>
+    <div>
+      <v-container fluid grid-list-md>
+        <v-textarea
+          v-model="importText"
+          name="input-7-1"
+          box
+          label="キャラクター名　プレイヤー名　★　ランク　改行"
+          auto-grow
+        ></v-textarea>
+      </v-container>
+      <v-btn color="success" @click="importExcel">Excelから取り込む</v-btn>
+    </div>
   </div>
 </template>
 
@@ -102,16 +113,12 @@ export default Vue.extend({
           value: "name"
         }),
         new DataTableHeader({ text: "ランク", value: "rank" }),
-        new DataTableHeader({ text: "☆", value: "star", align: "left" }),
-        new DataTableHeader({
-          text: "コメント",
-          value: "comment",
-          align: "left"
-        })
+        new DataTableHeader({ text: "☆", value: "star", align: "left" })
       ],
       editedIndex: NEW_ENTRY_INDEX,
       editedItem: new Player(),
-      defaultItem: new Player()
+      defaultItem: new Player(),
+      importText: ""
     };
   },
   methods: {
@@ -142,6 +149,17 @@ export default Vue.extend({
     },
     reset() {
       this.selectedPlayers = [];
+    },
+    importExcel() {
+      this.importText.split("\n").forEach(e => {
+        let t = e.split("\t");
+        let p = new Player({
+          name: t[1],
+          rank: t[3] != "" ? t[3] : 1,
+          star: t[2] != ""
+        });
+        StorableModule.addPlayer(p);
+      });
     }
   },
   watch: {

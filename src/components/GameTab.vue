@@ -10,6 +10,7 @@
       <v-btn color="error" @click="record('A')">A勝利</v-btn>
       <v-btn color="info" @click="record('B')">B勝利</v-btn>
     </v-toolbar>
+    <v-toolbar flat color="white"></v-toolbar>
     <div>
       <div>
         GAMEID:{{newGame.id|short}} |

@@ -1,11 +1,29 @@
 <template>
   <div>
+    <v-data-table
+      :headers="headersSelected"
+      :items="aggregates"
+      class="elevation-1"
+      item-key="playerName"
+      :rows-per-page-items="rowsPerPageItems"
+      :pagination.sync="paginationAggregates"
+    >
+      <template v-slot:items="props">
+        <tr>
+          <td>{{ props.item.playerName }}</td>
+          <td>{{ props.item.battleCount }}</td>
+          <td>{{ props.item.winCount }}</td>
+          <td>{{ props.item.winRate }}</td>
+        </tr>
+      </template>
+    </v-data-table>
     <v-toolbar flat color="white">
       <v-text-field v-model="search" append-icon="search" label="Search" hide-details></v-text-field>
       <v-spacer></v-spacer>
+      <v-btn color="success" @click="reset">選択をリセット</v-btn>
     </v-toolbar>
     <v-data-table
-      v-model="selected"
+      v-model="selectedResults"
       :headers="headers"
       :items="results"
       class="elevation-1"
@@ -31,23 +49,6 @@
         </tr>
       </template>
     </v-data-table>
-    <v-data-table
-      :headers="headersSelected"
-      :items="aggregates"
-      class="elevation-1"
-      item-key="playerName"
-      :rows-per-page-items="rowsPerPageItems"
-      :pagination.sync="pagination"
-    >
-      <template v-slot:items="props">
-        <tr>
-          <td>{{ props.item.playerName }}</td>
-          <td>{{ props.item.battleCount }}</td>
-          <td>{{ props.item.winCount }}</td>
-          <td>{{ props.item.winRate }}</td>
-        </tr>
-      </template>
-    </v-data-table>
   </div>
 </template>
 
@@ -68,10 +69,14 @@ export default Vue.extend({
       pagination: {
         rowsPerPage: 50
       },
+      paginationAggregates: {
+        rowsPerPage: 50
+      },
       rowsPerPageItems: [
         10,
-        20,
         50,
+        100,
+        200,
         { text: "$vuetify.dataIterator.rowsPerPageAll", value: -1 }
       ],
       newPlayerDialog: false,
@@ -139,11 +144,15 @@ export default Vue.extend({
           align: "left"
         })
       ],
-      selected: [],
+      selectedResults: [],
       search: ""
     };
   },
-  methods: {},
+  methods: {
+    reset() {
+      this.selectedResults = [];
+    }
+  },
   watch: {},
   computed: {
     watchedStore() {
@@ -166,7 +175,7 @@ export default Vue.extend({
       return results;
     },
     aggregates() {
-      const group = this.selected.reduce((result, current) => {
+      const group = this.selectedResults.reduce((result, current) => {
         const element = result.find(p => p.playerName === current.player.name);
         if (element) {
           if (!current.isSpector()) {
