@@ -6,11 +6,11 @@
       <v-btn color="success" @click="assignRandomWeapons()">ﾗﾝﾀﾞﾑﾌﾞｷ</v-btn>
       <v-btn color="success" @click="assignRandomStage()">ﾗﾝﾗﾑｽﾃｰｼﾞ</v-btn>
       <v-btn color="success" @click="assignRandomRule()">ﾗﾝﾀﾞﾑﾙｰﾙ</v-btn>
-      <v-spacer></v-spacer>
+    </v-toolbar>
+    <v-toolbar flat color="white">
       <v-btn color="error" @click="record('A')">A勝利</v-btn>
       <v-btn color="info" @click="record('B')">B勝利</v-btn>
     </v-toolbar>
-    <v-toolbar flat color="white"></v-toolbar>
     <div>
       <div>
         GAMEID:{{newGame.id|short}} |

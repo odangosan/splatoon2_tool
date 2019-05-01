@@ -130,6 +130,9 @@ export default class Constant extends VuexModule implements StoredObjectMethods 
         this.storedObject.constant.weaponRoots = this.storedObject.constant.weaponRoots.filter(e => {
             return !e.key.includes("scope");
         })
+        this.storedObject.constant.stageRoots = this.storedObject.constant.stageRoots.filter(e => {
+            return !e.key.includes("mystery");
+        })
         console.log("remove duplicate weapons", this.storedObject.constant.weaponRoots);
         console.log("stages", this.storedObject.constant.stageRoots);
         this.save();

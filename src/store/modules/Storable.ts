@@ -250,8 +250,9 @@ export class Game extends Entity {
     assignRandomWeapons() {
         this.results.forEach(e => {
             if (e.team != TEAM.WATCHING) {
-                let index = Math.floor(Math.random() * ConstantModule.weapons.length);
-                let weapon = ConstantModule.weapons[index];
+                let array = ConstantModule.storedObject.selected.weaponRoots.length == 0 ? ConstantModule.storedObject.constant.weaponRoots : ConstantModule.storedObject.selected.weaponRoots;
+                let index = Math.floor(Math.random() * array.length);
+                let weapon = array[index];
                 e.weapon = weapon;
             }
         })
@@ -260,8 +261,9 @@ export class Game extends Entity {
      * TODO:履歴を参照して重複を避ける
      */
     assignRandomStage() {
-        let index = Math.floor(Math.random() * ConstantModule.stages.length);
-        let stage = ConstantModule.stages[index]
+        let array = ConstantModule.storedObject.selected.stageRoots.length == 0 ? ConstantModule.storedObject.constant.stageRoots : ConstantModule.storedObject.selected.stageRoots;
+        let index = Math.floor(Math.random() * array.length);
+        let stage = array[index];
         this.stage = stage;
         this.results.forEach(e => {
             e.stage = stage;
@@ -271,13 +273,15 @@ export class Game extends Entity {
     * TODO:履歴を参照して重複を避ける
     */
     assignRandomRule() {
-        let index = Math.floor(Math.random() * ConstantModule.rules.length);
-        let rule = ConstantModule.rules[index]
+        console.log(this.rule);
+        let array = ConstantModule.storedObject.selected.rules.length == 0 ? ConstantModule.storedObject.constant.rules : ConstantModule.storedObject.selected.rules;
+        let index = Math.floor(Math.random() * array.length);
+        let rule = array[index];
         this.rule = rule;
         this.results.forEach(e => {
             e.rule = rule;
         })
-        console.log(this.rule);
+        // StorableModule.StoredObject.gameManager.games.
     }
     assignWinning(winning: TEAM) {
         this.winning = winning;

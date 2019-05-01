@@ -1,5 +1,10 @@
 <template>
   <div>
+    <v-toolbar flat color="white">
+      <div>
+        <p>検索で日付を指定、全て選択でその期間の戦績を集計可能</p>
+      </div>
+    </v-toolbar>
     <v-data-table
       :headers="headersSelected"
       :items="aggregates"

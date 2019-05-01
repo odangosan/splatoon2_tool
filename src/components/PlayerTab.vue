@@ -66,6 +66,9 @@
     </v-data-table>
     <div>
       <v-container fluid grid-list-md>
+        <v-toolbar flat color="white">
+          <v-btn color="success" @click="importExcel">Excelから取り込む</v-btn>
+        </v-toolbar>
         <v-textarea
           v-model="importText"
           name="input-7-1"
@@ -74,7 +77,6 @@
           auto-grow
         ></v-textarea>
       </v-container>
-      <v-btn color="success" @click="importExcel">Excelから取り込む</v-btn>
     </div>
   </div>
 </template>

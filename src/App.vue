@@ -90,16 +90,18 @@ export default Vue.extend({
 table.v-table tbody td,
 table.v-table tbody th,
 table.v-datatable {
-  padding: 0px 4px;
   height: 18px;
   .name {
     width: 75px;
+    padding: 0px 4px !important;
   }
   .weaponName {
     width: 250px;
+    padding: 0px 4px !important;
   }
   .team {
-    width: 18px;
+    width: 10px;
+    padding: 0px 4px !important;
   }
 }
 </style>
