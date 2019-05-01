@@ -145,7 +145,7 @@ export class Game extends Entity {
         let result = new Result({ gameId: this.id });
         this.results.push(result);
     }
-    private random(array: Aggregate[]) {
+    private random(array: any[]) {
         for (var i = array.length - 1; i > 0; i--) {
             var r = Math.floor(Math.random() * (i + 1));
             var tmp = array[i];
@@ -244,15 +244,20 @@ export class Game extends Entity {
             return a.team - b.team;
         })
     }
+
     /**
     * TODO:履歴を参照して重複を避ける
     */
     assignRandomWeapons() {
         this.results.forEach(e => {
             if (e.team != TEAM.WATCHING) {
-                let array = ConstantModule.storedObject.selected.weaponRoots.length == 0 ? ConstantModule.storedObject.constant.weaponRoots : ConstantModule.storedObject.selected.weaponRoots;
-                let index = Math.floor(Math.random() * array.length);
-                let weapon = array[index];
+                let array = ConstantModule.storedObject.selected.weaponRoots.length == 0 ? ConstantModule.storedObject.constant.weaponRoots.slice() : ConstantModule.storedObject.selected.weaponRoots.slice();
+
+                array = this.random(array);
+                array = this.random(array);
+                // let index = Math.floor(Math.random() * array.length);
+                // let weapon = array[index];
+                let weapon = array[0];
                 e.weapon = weapon;
             }
         })
@@ -261,9 +266,12 @@ export class Game extends Entity {
      * TODO:履歴を参照して重複を避ける
      */
     assignRandomStage() {
-        let array = ConstantModule.storedObject.selected.stageRoots.length == 0 ? ConstantModule.storedObject.constant.stageRoots : ConstantModule.storedObject.selected.stageRoots;
-        let index = Math.floor(Math.random() * array.length);
-        let stage = array[index];
+        let array = ConstantModule.storedObject.selected.stageRoots.length == 0 ? ConstantModule.storedObject.constant.stageRoots.slice() : ConstantModule.storedObject.selected.stageRoots.slice();
+        array = this.random(array);
+        array = this.random(array);
+        // let index = Math.floor(Math.random() * array.length);
+        // let stage = array[index];
+        let stage = array[0];
         this.stage = stage;
         this.results.forEach(e => {
             e.stage = stage;
@@ -274,9 +282,13 @@ export class Game extends Entity {
     */
     assignRandomRule() {
         console.log(this.rule);
-        let array = ConstantModule.storedObject.selected.rules.length == 0 ? ConstantModule.storedObject.constant.rules : ConstantModule.storedObject.selected.rules;
-        let index = Math.floor(Math.random() * array.length);
-        let rule = array[index];
+        let array = ConstantModule.storedObject.selected.rules.length == 0 ? ConstantModule.storedObject.constant.rules.slice() : ConstantModule.storedObject.selected.rules.slice();
+
+        array = this.random(array);
+        array = this.random(array);
+        // let index = Math.floor(Math.random() * array.length);
+        // let rule = array[index];
+        let rule = array[0];
         this.rule = rule;
         this.results.forEach(e => {
             e.rule = rule;
