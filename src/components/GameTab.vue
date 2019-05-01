@@ -3,13 +3,25 @@
     <v-toolbar flat color="white">
       <v-btn color="success" @click="create()">新しいゲーム</v-btn>
       <v-btn color="success" @click="assignAll()">ｽﾍﾞﾃﾗﾝﾀﾞﾑ</v-btn>
-      <v-btn color="success" @click="assignRandomWeapons()">ﾗﾝﾀﾞﾑﾌﾞｷ</v-btn>
-      <v-btn color="success" @click="assignRandomStage()">ﾗﾝﾗﾑｽﾃｰｼﾞ</v-btn>
-      <v-btn color="success" @click="assignRandomRule()">ﾗﾝﾀﾞﾑﾙｰﾙ</v-btn>
+      <v-btn
+        color="success"
+        :disabled="newGame.results.length==0"
+        @click="assignRandomWeapons()"
+      >ﾗﾝﾀﾞﾑﾌﾞｷ</v-btn>
+      <v-btn
+        color="success"
+        :disabled="newGame.results.length==0"
+        @click="assignRandomStage()"
+      >ﾗﾝﾗﾑｽﾃｰｼﾞ</v-btn>
+      <v-btn
+        color="success"
+        :disabled="newGame.results.length==0"
+        @click="assignRandomRule()"
+      >ﾗﾝﾀﾞﾑﾙｰﾙ</v-btn>
     </v-toolbar>
     <v-toolbar flat color="white">
-      <v-btn color="error" @click="record('A')">A勝利</v-btn>
-      <v-btn color="info" @click="record('B')">B勝利</v-btn>
+      <v-btn color="error" :disabled="newGame.results.length==0" @click="record('A')">A勝利</v-btn>
+      <v-btn color="info" :disabled="newGame.results.length==0" @click="record('B')">B勝利</v-btn>
     </v-toolbar>
     <div>
       <div>
