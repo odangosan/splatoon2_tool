@@ -119,14 +119,6 @@ export default Vue.extend({
     watchedStore() {
       return StorableModule.KEY;
     },
-    selectedPlayers: {
-      set: function(newValue) {
-        StorableModule.SET_PLAYERS_SELECTED(newValue);
-      },
-      get: function() {
-        return StorableModule.StoredObject.selectedPlayers;
-      }
-    },
     newGame() {
       return StorableModule.StoredObject.gameManager.newGame;
     },

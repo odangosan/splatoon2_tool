@@ -1,35 +1,23 @@
 <template>
   <div>
     <v-toolbar flat color="white">
-      <!-- <v-btn color="success" @click="create()">新しいゲーム</v-btn>
-      <v-btn color="success" @click="assignAll()">ｽﾍﾞﾃﾗﾝﾀﾞﾑ</v-btn>
-      <v-btn color="success" @click="assignRandomWeapons()">ﾗﾝﾀﾞﾑﾌﾞｷ</v-btn>
-      <v-btn color="success" @click="assignRandomStage()">ﾗﾝﾗﾑｽﾃｰｼﾞ</v-btn>
-      <v-btn color="success" @click="assignRandomRule()">ﾗﾝﾀﾞﾑﾙｰﾙ</v-btn>
       <v-spacer></v-spacer>
-      <v-btn color="error" @click="record('A')">A勝利</v-btn>
-      <v-btn color="info" @click="record('B')">B勝利</v-btn>-->
     </v-toolbar>
-    <!-- <div>
-      <div>
-        GAMEID:{{newGame.getShortId()}} |
-        DATE:{{newGame.getFormattedCreatedAt()}}
-      </div>
-      <div>
-        STAGE:{{newGame.stage.name.ja_JP}} |
-        RULE:{{newGame.rule.name.ja_JP}}
-      </div>
-    </div>-->
     <v-data-table
       :headers="headers"
-      :items="newGame.results"
+      :items="results"
       class="elevation-1"
       item-key="id"
-      hide-headers
-      hide-actions
+      :rows-per-page-items="rowsPerPageItems"
+      :pagination.sync="pagination"
     >
       <template v-slot:items="props">
         <tr>
+          <td>{{props.item.gameId|short}}</td>
+          <td>{{props.item.formattedCreatedAt()}}</td>
+          <td>{{props.item.stage.name.ja_JP}}</td>
+          <td>{{props.item.rule.name.ja_JP}}</td>
+          <td>{{props.item.isWinText}}</td>
           <td class="team">{{ props.item.getTeamName()}}</td>
           <td class="name">{{ props.item.player.name }}</td>
           <td class="weaponName">{{ props.item.weapon!=null?props.item.weapon.name.ja_JP:""}}</td>
@@ -54,96 +42,86 @@ export default Vue.extend({
   data() {
     return {
       pagination: {
-        rowsPerPage: 15
+        rowsPerPage: 50
       },
       rowsPerPageItems: [
-        5,
         10,
-        15,
-        25,
+        20,
+        50,
         { text: "$vuetify.dataIterator.rowsPerPageAll", value: -1 }
       ],
       newPlayerDialog: false,
       headers: [
         new DataTableHeader({
-          text: "チーム",
-          align: "left"
+          text: "GAMEID",
+          align: "left",
+          value: "gameId"
+        }),
+        new DataTableHeader({
+          text: "時間",
+          align: "left",
+          value: "createdAt"
+        }),
+        new DataTableHeader({
+          text: "ステージ",
+          align: "left",
+          value: "stage.name.ja_JP"
+        }),
+        new DataTableHeader({
+          text: "ルール",
+          align: "left",
+          value: "rule.name.ja_JP"
+        }),
+        new DataTableHeader({
+          text: "勝敗",
+          align: "left",
+          value: "isWinText"
+        }),
+        new DataTableHeader({
+          text: "所属チーム",
+          align: "left",
+          value: "team"
         }),
         new DataTableHeader({
           text: "名前",
           align: "left",
-          value: "name"
+          value: "player.name"
         }),
         new DataTableHeader({
           text: "ブキ",
-          value: "weapon",
+          value: "weapon.name.ja_JP",
           align: "left"
         })
       ]
     };
   },
-  methods: {
-    create() {
-      this.gameManager.initGame();
-      this.newGame.assignPlayers();
-    },
-    assignRandomWeapons() {
-      this.newGame.assignRandomWeapons();
-    },
-    assignRandomStage() {
-      this.newGame.assignRandomStage();
-    },
-    assignRandomRule() {
-      this.newGame.assignRandomRule();
-    },
-    assignAll() {
-      this.create();
-      this.assignRandomWeapons();
-      this.assignRandomStage();
-      this.assignRandomRule();
-    },
-    record(team) {
-      if (team == "A") {
-        console.log("win A");
-      } else {
-        console.log("win B");
-      }
-      gameManager;
-    },
-    registering() {
-      this.gameManager.registering();
-    }
-  },
-  watch: {
-    watchedStore(newValue, oldValue) {
-      StorableModule.save();
-    },
-    deep: true
-  },
+  methods: {},
+  watch: {},
   computed: {
     watchedStore() {
       return StorableModule.KEY;
-    },
-    selectedPlayers: {
-      set: function(newValue) {
-        StorableModule.SET_PLAYERS_SELECTED(newValue);
-      },
-      get: function() {
-        return StorableModule.StoredObject.selectedPlayers;
-      }
     },
     newGame() {
       return StorableModule.StoredObject.gameManager.newGame;
     },
     gameManager() {
       return StorableModule.StoredObject.gameManager;
+    },
+    games() {
+      return StorableModule.StoredObject.gameManager.games;
+    },
+    results() {
+      let results = [];
+      StorableModule.StoredObject.gameManager.games.forEach(e => {
+        results = results.concat(e.results);
+      });
+      return results;
     }
   },
   created() {},
-  destroyed() {
-    StorableModule.save();
-  },
+  destroyed() {},
   components: {}
 });
 </script>
+
 

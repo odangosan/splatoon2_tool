@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import moment from "moment";
+moment.locale('ja')
 import { StoredObjectMethods } from "@/models/StoredObject"
 
 Vue.use(Vuex);
@@ -13,6 +14,14 @@ class Entity {
     }
     id: string;
     createdAt = moment();
+
+    formattedCreatedAt() {
+        return this.createdAt.format("MM/DD HH:mm:ss")
+    }
+    shortId() {
+        return this.id.substring(0, 8);
+    }
+
     private getRandomId() {
         // https://github.com/GoogleChrome/chrome-platform-analytics/blob/master/src/internal/identifier.js
         // const FORMAT: string = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
@@ -52,7 +61,7 @@ enum TEAM {
 import { StageRoot, Rule, ConstantModule } from "@/store/modules/Constant"
 
 export class Result extends Entity {
-    gameId!: string;
+    gameId: string = "";
     team: TEAM = TEAM.NONE;
     winning: TEAM = TEAM.NONE;
     stage: StageRoot = new StageRoot();
@@ -66,15 +75,44 @@ export class Result extends Entity {
     getTeamName() {
         switch (this.team) {
             case TEAM.A:
-                return TEAM[this.team];
             case TEAM.B:
                 return TEAM[this.team];
             default:
                 return "観";
         }
     }
+    getWinningTeamName() {
+        switch (this.winning) {
+            case TEAM.A:
+            case TEAM.B:
+                return TEAM[this.winning];
+            default:
+                return "観";
+        }
+    }
     isWin() {
         return this.team == this.winning;
+    }
+    isSpector() {
+        return this.team == TEAM.WATCHING;
+    }
+    get isWinText() {
+        switch (this.team) {
+            case TEAM.A:
+            case TEAM.B:
+                return this.team == this.winning ? "勝" : "負";
+            case TEAM.WATCHING:
+                return "----";
+        }
+    }
+}
+class Aggregate {
+    playerId: string = "";
+    playerName: string = "";
+    battleCount: number = 1;
+    winCount: number = 0;
+    constructor(init: Partial<Aggregate>) {
+        Object.assign(this, init);
     }
 }
 export class Game extends Entity {
@@ -94,18 +132,43 @@ export class Game extends Entity {
     assignPlayers() {
         // StorableModule.StoredObject.players
         //playersから10人まで選出し、resultに割り当てる、チーム分けをする
-        let tmpPlayers = [new Player({ name: "A1" }), new Player({ name: "A2" }), new Player({ name: "A3" }), new Player({ name: "A4" }), new Player({ name: "B1" }), new Player({ name: "B2" }), new Player({ name: "B3" }), new Player({ name: "B4" }), new Player({ name: "S1" }), new Player({ name: "S2" })];
-        for (let index = 0; index < tmpPlayers.length; index++) {
-            let result = new Result({ gameId: this.id });
-            result.player = tmpPlayers[index];
-            if (index < 4)
-                result.team = TEAM.A;
-            else if (index > 3 && index < 8)
-                result.team = TEAM.B;
-            else
-                result.team = TEAM.WATCHING;
-            this.results.push(result);
+        let tmpPlayers = StorableModule.StoredObject.selectedPlayers.slice(0, StorableModule.StoredObject.selectedPlayers.length);
+        for (var i = tmpPlayers.length - 1; i > 0; i--) {
+            var r = Math.floor(Math.random() * (i + 1));
+            var tmp = tmpPlayers[i];
+            tmpPlayers[i] = tmpPlayers[r];
+            tmpPlayers[r] = tmp;
         }
+        //参加数集計
+        const group = StorableModule.StoredObject.gameManager.flatResults().reduce((result: Aggregate[], current) => {
+            const element = result.find((p) => p.playerName === current.player.name);
+            if (element) {
+                if (!current.isSpector()) {
+                    element.battleCount++; // count
+                    element.winCount += current.isWin() ? 1 : 0; // sum
+                }
+            } else {
+                result.push(new Aggregate({
+                    playerName: current.player.name,
+                    winCount: current.isWin() ? 1 : 0
+                }));
+            }
+            return result;
+        }, []);
+        console.log(group);
+
+
+        // for (let index = 0; index < 10; index++) {
+        //     let result = new Result({ gameId: this.id });
+        //     result.player = tmpPlayers[index];
+        //     if (index < 4)
+        //         result.team = TEAM.A;
+        //     else if (index > 3 && index < 8)
+        //         result.team = TEAM.B;
+        //     else if (index < 10)
+        //         result.team = TEAM.WATCHING;
+        //     this.results.push(result);
+        // }
     }
     /**
     * TODO:履歴を参照して重複を避ける
@@ -178,6 +241,14 @@ export class GameManager {
     assignWinning(winning: TEAM) {
         this.newGame.assignWinning(winning);
     }
+
+    flatResults() {
+        let results: Result[] = [];
+        StorableModule.StoredObject.gameManager.games.forEach(e => {
+            results = results.concat(e.results);
+        });
+        return results;
+    }
 }
 export class StoredObject {
     players: Player[] = [];
@@ -190,11 +261,6 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     STORED_OBJECT_KEY: string = "STORED_OBJECT_KEY_MYDATA";
     StoredObject: StoredObject = new StoredObject();
     get KEY() {
-        console.log(this.StoredObject.players);
-        console.log(this.StoredObject.selectedPlayers);
-        console.log(this.StoredObject.gameManager);
-
-
         // console.log(this.StoredObject);
         // return this.StoredObject.toString();
         return this.StoredObject.players.toString() +
@@ -299,6 +365,7 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
                     team: r.team, winning: r.winning, stage: r.stage, rule: r.rule, weapon: r.weapon, player: new Player(r.player)
                 }
                 let result = new Result(set);
+                result.createdAt = moment(r.createdAt);
                 game.results.push(result);
             })
             newSO.gameManager.newGame = game;
@@ -311,6 +378,7 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
                         team: r.team, winning: r.winning, stage: r.stage, rule: r.rule, weapon: r.weapon, player: new Player(r.player)
                     }
                     let result = new Result(set);
+                    result.createdAt = moment(r.createdAt);
                     game.results.push(result);
                 })
                 newSO.gameManager.games.push(game);
@@ -324,6 +392,7 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     @Action
     addPlayer(player: Player) {
         this.StoredObject.players.push(player);
+        this.StoredObject.selectedPlayers.push(player);
     }
     @Action
     removePlayer(player: Player) {
