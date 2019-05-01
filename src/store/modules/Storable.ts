@@ -157,18 +157,17 @@ export class Game extends Entity {
         }, []);
         console.log(group);
 
-
-        // for (let index = 0; index < 10; index++) {
-        //     let result = new Result({ gameId: this.id });
-        //     result.player = tmpPlayers[index];
-        //     if (index < 4)
-        //         result.team = TEAM.A;
-        //     else if (index > 3 && index < 8)
-        //         result.team = TEAM.B;
-        //     else if (index < 10)
-        //         result.team = TEAM.WATCHING;
-        //     this.results.push(result);
-        // }
+        for (let index = 0; index < 10; index++) {
+            let result = new Result({ gameId: this.id });
+            result.player = tmpPlayers[index];
+            if (index > 7)
+                result.team = TEAM.WATCHING;
+            else if (index % 2 == 0)
+                result.team = TEAM.A;
+            else if (index % 2 == 1)
+                result.team = TEAM.B;
+            this.results.push(result);
+        }
     }
     /**
     * TODO:履歴を参照して重複を避ける
