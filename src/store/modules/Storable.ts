@@ -157,22 +157,24 @@ export class Game extends Entity {
                 let find = tmpPlayers.find(e => {
                     return e.name == current.player.name;
                 })
-                if (find)
+                if (find) {
                     result.push(new Aggregate({
                         player: current.player,
                         playerName: current.player.name,
                         battleCount: 1,
                         winCount: current.isWin() ? 1 : 0
                     }));
+                }
             }
             return result;
         }, []);
+
         tmpPlayers.forEach(e => {
             let find = group.find(g => {
                 return g.playerName == e.name;
             })
             if (find == undefined) {
-                let aggregate = new Aggregate({ playerId: e.id, playerName: e.name })
+                let aggregate = new Aggregate({ player: e, playerId: e.id, playerName: e.name })
                 group.push(aggregate);
             }
         })
@@ -191,9 +193,12 @@ export class Game extends Entity {
             spectorPlayer = assignablePlayer.slice(8, 10);
             playablePlayer = playablePlayer.concat(spectorPlayer);
         }
+        console.log(playablePlayer);
         let maxPlayer = playablePlayer.length > 10 ? 10 : playablePlayer.length;
         for (let index = 0; index < maxPlayer; index++) {
             let result = new Result({ gameId: this.id });
+            console.log(playablePlayer[index].player);
+
             result.player = playablePlayer[index].player;
             if (index > 7)
                 result.team = TEAM.WATCHING;
