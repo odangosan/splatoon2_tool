@@ -83,6 +83,18 @@ export default Vue.extend({
     StorableModule.load();
     ConstantModule.load();
   },
+
+  watch: {
+    watchedStore(newValue, oldValue) {
+      ConstantModule.save();
+    },
+    deep: true
+  },
+  computed: {
+    watchedStore() {
+      return ConstantModule.KEY;
+    }
+  },
   components: { PlayerTab, WeaponTab, RuleTab, StageTab, GameTab, ResultTab }
 });
 </script>

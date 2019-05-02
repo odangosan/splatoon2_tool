@@ -68,15 +68,9 @@ export default Vue.extend({
     }
   },
   watch: {
-    watchedStore(newValue, oldValue) {
-      ConstantModule.save();
-    },
     deep: true
   },
   computed: {
-    watchedStore() {
-      return ConstantModule.KEY;
-    },
     stages() {
       return ConstantModule.stages;
     },

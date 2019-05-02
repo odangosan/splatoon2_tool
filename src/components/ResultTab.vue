@@ -167,9 +167,6 @@ export default Vue.extend({
   },
   watch: {},
   computed: {
-    watchedStore() {
-      return StorableModule.KEY;
-    },
     newGame() {
       return StorableModule.StoredObject.gameManager.newGame;
     },

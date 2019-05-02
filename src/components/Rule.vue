@@ -67,16 +67,8 @@ export default Vue.extend({
       this.selectedRules = [];
     }
   },
-  watch: {
-    watchedStore(newValue, oldValue) {
-      ConstantModule.save();
-    },
-    deep: true
-  },
+  watch: {},
   computed: {
-    watchedStore() {
-      return ConstantModule.KEY;
-    },
     rules() {
       return ConstantModule.rules;
     },

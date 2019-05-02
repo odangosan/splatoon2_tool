@@ -122,16 +122,8 @@ export default Vue.extend({
       StorableModule.registering();
     }
   },
-  watch: {
-    watchedStore(newValue, oldValue) {
-      StorableModule.save();
-    },
-    deep: true
-  },
+  watch: {},
   computed: {
-    watchedStore() {
-      return StorableModule.KEY;
-    },
     newGame() {
       return StorableModule.StoredObject.gameManager.newGame;
     },

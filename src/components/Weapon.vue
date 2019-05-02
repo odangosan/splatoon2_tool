@@ -86,15 +86,9 @@ export default Vue.extend({
     }
   },
   watch: {
-    watchedStore(newValue, oldValue) {
-      ConstantModule.save();
-    },
     deep: true
   },
   computed: {
-    watchedStore() {
-      return ConstantModule.KEY;
-    },
     weapons() {
       return ConstantModule.weapons;
     },

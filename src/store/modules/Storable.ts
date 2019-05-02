@@ -344,12 +344,9 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     STORED_OBJECT_KEY: string = "STORED_OBJECT_KEY_MYDATA";
     StoredObject: StoredObject = new StoredObject();
     get KEY() {
-        // console.log(this.StoredObject);
-        // return this.StoredObject.toString();
         return this.StoredObject.players.toString() +
             this.StoredObject.selectedPlayers.toString() +
             this.StoredObject.gameManager.toString();
-        // return this.StoredObject.getKeys();
     }
     @Mutation
     SET_STORED_OBJECT(StoredObject: StoredObject) {
@@ -405,6 +402,7 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
             winning = TEAM.B;
         }
         this.StoredObject.gameManager.newGame.assignWinning(winning);
+        this.save();
     }
     @Action
     registering() {
@@ -415,14 +413,15 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     deleteAll() {
         localStorage.removeItem(this.STORED_OBJECT_KEY);
         this.SET_STORED_OBJECT(new StoredObject());
+        this.save();
     }
-    @Action
+    @Mutation
     deleteResult() {
         localStorage.removeItem(this.STORED_OBJECT_KEY);
         this.StoredObject.gameManager = new GameManager();
-        this.SET_STORED_OBJECT(this.StoredObject);
+        this.save();
     }
-    @Action
+    @Mutation
     save() {
         console.log("start save.");
         var storedObject = JSON.stringify(this.StoredObject);
@@ -479,6 +478,7 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     addPlayer(player: Player) {
         this.StoredObject.players.push(player);
         this.StoredObject.selectedPlayers.push(player);
+        this.save();
     }
     @Action
     removePlayer(player: Player) {
@@ -488,6 +488,7 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         this.StoredObject.selectedPlayers = this.StoredObject.selectedPlayers.filter(e => {
             return e.id != player.id;
         })
+        this.save();
     }
     @Action
     removeGame(gameId: string) {
