@@ -110,12 +110,12 @@ export class Result extends Entity {
         }
     }
 }
-class Aggregate {
+class AggregatePlayerCount {
     playerId: string = "";
     playerName: string = "";
     battleCount: number = 0;
     winCount: number = 0;
-    constructor(init: Partial<Aggregate>) {
+    constructor(init: Partial<AggregatePlayerCount>) {
         Object.assign(this, init);
     }
     player!: Player;
@@ -151,7 +151,7 @@ export class Game extends Entity {
         }
         return array;
     }
-    private rating(array: Aggregate[]) {
+    private rating(array: AggregatePlayerCount[]) {
         array.sort((a, b) => {
             return a.winRate() - b.winRate();
         })
@@ -164,7 +164,7 @@ export class Game extends Entity {
         let tmpPlayers = StorableModule.StoredObject.selectedPlayers.slice();
 
         //参加数集計
-        const group = StorableModule.StoredObject.gameManager.flatResults().reduce((result: Aggregate[], current) => {
+        const group = StorableModule.StoredObject.gameManager.flatResults().reduce((result: AggregatePlayerCount[], current) => {
             const element = result.find((p) => p.playerName === current.player.name);
             if (element) {
                 if (!current.isSpector()) {
@@ -176,7 +176,7 @@ export class Game extends Entity {
                     return e.name == current.player.name;
                 })
                 if (find) {
-                    result.push(new Aggregate({
+                    result.push(new AggregatePlayerCount({
                         player: current.player,
                         playerName: current.player.name,
                         battleCount: current.isSpector() ? 0 : 1,
@@ -192,7 +192,7 @@ export class Game extends Entity {
                 return g.playerName == e.name;
             })
             if (find == undefined) {
-                let aggregate = new Aggregate({ player: e, playerId: e.id, playerName: e.name })
+                let aggregate = new AggregatePlayerCount({ player: e, playerId: e.id, playerName: e.name })
                 group.push(aggregate);
             }
         })
@@ -497,6 +497,28 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         });
         this.save();
     }
+
+    get flatResults() {
+        const group = null;
+        // const group = this.StoredObject.gameManager.games.reduce((result, current) => {
+        //     const element = result.find(p => p.playerName === current.player.name);
+        //     if (element) {
+        //         if (!current.isSpector()) {
+        //             element.battleCount++; // count
+        //             element.winCount += current.isWin() ? 1 : 0; // sum
+        //         }
+        //     } else {
+        //         let a = new Aggregate();
+        //         a.playerName = current.player.name;
+        //         a.battleCount = current.isSpector() ? 0 : 1;
+        //         a.winCount = current.isWin() ? 1 : 0;
+        //         result.push(a);
+        //     }
+        //     return result;
+        // }, []);
+        return group;
+    }
+
 }
 
 export const StorableModule = getModule(Storable);
