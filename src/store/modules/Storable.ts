@@ -327,7 +327,7 @@ export class GameManager {
 
     flatResults() {
         let results: Result[] = [];
-        StorableModule.StoredObject.gameManager.games.forEach(e => {
+        this.games.forEach(e => {
             results = results.concat(e.results);
         });
         return results;
@@ -497,28 +497,44 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         });
         this.save();
     }
-
     get flatResults() {
-        const group = null;
-        // const group = this.StoredObject.gameManager.games.reduce((result, current) => {
-        //     const element = result.find(p => p.playerName === current.player.name);
-        //     if (element) {
-        //         if (!current.isSpector()) {
-        //             element.battleCount++; // count
-        //             element.winCount += current.isWin() ? 1 : 0; // sum
-        //         }
-        //     } else {
-        //         let a = new Aggregate();
-        //         a.playerName = current.player.name;
-        //         a.battleCount = current.isSpector() ? 0 : 1;
-        //         a.winCount = current.isWin() ? 1 : 0;
-        //         result.push(a);
-        //     }
-        //     return result;
-        // }, []);
-        return group;
+        return this.StoredObject.gameManager.flatResults();
     }
 
+    get AggregateStageAndRules() {
+        let results: AggregateStageAndRule[] = [];
+        ConstantModule.storedObject.selected.rules.forEach(r => {
+            ConstantModule.storedObject.selected.stageRoots.forEach(s => {
+                results.push(new AggregateStageAndRule({ rule: r, stage: s }))
+            })
+        })
+        const group = this.flatResults.reduce((result, current) => {
+            const find = result.find(p => {
+                return p.rule.key === current.rule.key && p.stage.key === current.stage.key
+            });
+            if (find) {
+                find.count++; // count
+            } else {
+                // let a = new AggregateStageAndRule({ stage: current.stage, rule: current.rule });
+                // a.stage = current.stage;
+                // a.rule = current.rule
+                // a.count = 1;
+                // result.push(a);
+            }
+            return result;
+        }, results);
+        return group;
+    }
+}
+
+export class AggregateStageAndRule {
+    stage: StageRoot = new StageRoot();
+    rule: Rule = new Rule();
+    count = 0;
+    constructor(init?: Partial<AggregateStageAndRule>) {
+        if (init)
+            Object.assign(this, init);
+    }
 }
 
 export const StorableModule = getModule(Storable);

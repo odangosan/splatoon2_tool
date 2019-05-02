@@ -19,6 +19,7 @@
         <v-tab :href="'#tab-rule'">ルール一覧</v-tab>
         <v-tab :href="'#tab-weapon'">ブキ一覧</v-tab>
         <v-tab :href="'#tab-main'">プレイヤー一覧</v-tab>
+        <v-tab :href="'#tab-about'">使い方</v-tab>
         <!-- <v-tab v-for="i in selected" :key="i.name" :href="'#tab-' + i.name">{{ i.name }}</v-tab> -->
 
         <v-tabs-items>
@@ -39,6 +40,19 @@
           </v-tab-item>
           <v-tab-item :value="'tab-main'">
             <player-tab></player-tab>
+          </v-tab-item>
+          <v-tab-item :value="'tab-about'">
+            <v-card>
+              <v-card-title>使い方</v-card-title>
+              <v-card-text>「プレイヤー一覧」でプレイヤーを登録</v-card-text>
+              <v-card-text>下のテキストエリアにタブ区切りのデータを入力して登録することも可能</v-card-text>
+              <v-card-text>ステージなど、使いたいものを選択</v-card-text>
+              <v-card-text>「ゲーム作成」の「新しいゲームを作成」、もしくは「ｽﾍﾞﾃﾗﾝﾀﾞﾑ」を押す</v-card-text>
+              <v-card-text>「新しいゲームを作成」→プレイヤーの割り振りだけ</v-card-text>
+              <v-card-text>結果が出たら「A勝利」「B勝利」のいずれかを押す</v-card-text>
+              <v-card-text>戦績一覧に追加される</v-card-text>
+              <v-card-text>※ランダム計算は過去の履歴を参照していないため重複有</v-card-text>
+            </v-card>
           </v-tab-item>
           <!-- <v-tab-item v-for="i in selected" :key="i.name" :value="'tab-' + i.name">
             <div>{{selected}}</div>

@@ -177,11 +177,7 @@ export default Vue.extend({
       return StorableModule.StoredObject.gameManager.games;
     },
     results() {
-      let results = [];
-      StorableModule.StoredObject.gameManager.games.forEach(e => {
-        results = results.concat(e.results);
-      });
-      return results;
+      return StorableModule.flatResults;
     },
     aggregates() {
       const group = this.selectedResults.reduce((result, current) => {
