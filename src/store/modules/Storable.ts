@@ -344,17 +344,16 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     STORED_OBJECT_KEY: string = "STORED_OBJECT_KEY_MYDATA";
     StoredObject: StoredObject = new StoredObject();
     get KEY() {
-        return this.StoredObject.players.toString() +
-            this.StoredObject.selectedPlayers.toString() +
-            this.StoredObject.gameManager.toString();
+        return this.StoredObject
     }
     @Mutation
     SET_STORED_OBJECT(StoredObject: StoredObject) {
         this.StoredObject = StoredObject;
     }
-    @Mutation
+    @Action
     SET_PLAYERS_SELECTED(players: Player[]) {
         this.StoredObject.selectedPlayers = players;
+        this.save();
     }
 
     @Action({ rawError: true })
