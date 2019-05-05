@@ -14,7 +14,8 @@
       <v-tabs dark color="cyan" show-arrows>
         <v-tabs-slider color="red"></v-tabs-slider>
         <v-tab :href="'#tab-game'">ゲーム作成</v-tab>
-        <v-tab :href="'#tab-result'">戦績一覧</v-tab>
+        <v-tab :href="'#tab-resultToday'">今日の戦績一覧</v-tab>
+        <v-tab :href="'#tab-result'">全ての戦績一覧</v-tab>
         <v-tab :href="'#tab-stage'">ステージ一覧</v-tab>
         <v-tab :href="'#tab-rule'">ルール一覧</v-tab>
         <v-tab :href="'#tab-weapon'">ブキ一覧</v-tab>
@@ -25,6 +26,9 @@
         <v-tabs-items>
           <v-tab-item :value="'tab-game'">
             <game-tab></game-tab>
+          </v-tab-item>
+          <v-tab-item :value="'tab-resultToday'">
+            <result-today-tab></result-today-tab>
           </v-tab-item>
           <v-tab-item :value="'tab-result'">
             <result-tab></result-tab>
@@ -78,6 +82,7 @@ import WeaponTab from "@/components/Weapon";
 import RuleTab from "@/components/Rule";
 import StageTab from "@/components/Stage";
 import ResultTab from "@/components/ResultTab";
+import ResultTodayTab from "@/components/ResultTodayTab";
 import { DataTableHeader } from "@/models/Defs";
 import { ConstantModule } from "@/store/modules/Constant";
 import {
@@ -116,7 +121,15 @@ export default Vue.extend({
       return ConstantModule.KEY;
     }
   },
-  components: { PlayerTab, WeaponTab, RuleTab, StageTab, GameTab, ResultTab }
+  components: {
+    PlayerTab,
+    WeaponTab,
+    RuleTab,
+    StageTab,
+    GameTab,
+    ResultTab,
+    ResultTodayTab
+  }
 });
 </script>
  <style lang="scss" >
