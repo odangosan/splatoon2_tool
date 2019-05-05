@@ -231,6 +231,7 @@ export default Vue.extend({
         } else {
           let a = new aggregatesResultRule();
           a.rule = current.rule;
+          if (a.rule.key == "") a.rule.name.ja_JP = "指定無し";
           a.ruleCount++;
           result.push(a);
         }
