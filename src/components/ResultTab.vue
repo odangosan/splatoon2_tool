@@ -5,6 +5,11 @@
         <p>検索で日付を指定、全て選択でその期間の戦績を集計可能</p>
       </div>
     </v-toolbar>
+    <v-toolbar flat color="white">
+      <div>
+        <p>選択内対戦数：{{aggregatesResult.length}}</p>
+      </div>
+    </v-toolbar>
     <v-data-table
       :headers="headersSelected"
       :items="aggregates"
@@ -197,13 +202,32 @@ export default Vue.extend({
         return result;
       }, []);
       return group;
+    },
+    aggregatesResult() {
+      const group = this.selectedResults.reduce((result, current) => {
+        const element = result.find(p => p.gameId === current.gameId);
+        if (element) {
+        } else {
+          let a = new aggregatesResultCount();
+          a.gameId = current.gameId;
+          a.createdAt = current.createdAt;
+          result.push(a);
+        }
+        return result;
+      }, []);
+      return group;
     }
   },
   created() {},
   destroyed() {},
   components: {}
 });
-
+class aggregatesResultCount {
+  constructor(gameId = "", createdAt = "") {
+    this.gameId = gameId;
+    this.createdAt = createdAt;
+  }
+}
 class Aggregate {
   playerName = "";
   battleCount = 0;

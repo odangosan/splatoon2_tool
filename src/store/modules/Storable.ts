@@ -276,6 +276,7 @@ export class Game extends Entity {
     */
     assignRandomRule() {
         let array = ConstantModule.storedObject.selected.rules.length == 0 ? ConstantModule.storedObject.constant.rules.slice() : ConstantModule.storedObject.selected.rules.slice();
+        console.log(array);
 
         array = this.random(array);
         array = this.random(array);
