@@ -49,6 +49,7 @@ export class Player extends Entity {
     rank = 1;
     star: boolean = false
     comment: string = "";
+    owner: boolean = false;
     constructor(init?: Partial<Player>) {
         super();
         if (init)
@@ -213,14 +214,28 @@ export class Game extends Entity {
             }
         } else {
             if (shuffle == SHUFFLE.RANDOM) {
-                playablePlayer = this.random(assignablePlayer.slice(0, 8));
+                playablePlayer = this.random(assignablePlayer.slice(0, 8)) as AggregatePlayerCount[];
             } else if (shuffle == SHUFFLE.RATING) {
-                playablePlayer = this.rating(assignablePlayer.slice(0, 8));
+                playablePlayer = this.rating(assignablePlayer.slice(0, 8)) as AggregatePlayerCount[];
             } else {
-                playablePlayer = this.random(assignablePlayer.slice(0, 8));
+                playablePlayer = this.random(assignablePlayer.slice(0, 8)) as AggregatePlayerCount[];
             }
+
             let spectorPlayer = assignablePlayer.slice(8, 10);
             playablePlayer = playablePlayer.concat(spectorPlayer);
+            //9人以上で管理者がいない場合に代入する
+            let admin = StorableModule.StoredObject.players.find(e => {
+                return e.owner;
+            })
+            if (admin) {
+                let hoge = playablePlayer.find(e => {
+                    return e.playerName == admin!.name;
+                })
+                if (hoge) {
+                } else {
+                    playablePlayer[8].player = admin;
+                }
+            }
         }
         let maxPlayer = playablePlayer.length > 10 ? 10 : playablePlayer.length;
         for (let index = 0; index < maxPlayer; index++) {

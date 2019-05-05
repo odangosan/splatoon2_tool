@@ -19,11 +19,14 @@
                 <v-flex xs12 sm12>
                   <v-text-field v-model="editedItem.name" label="名前"></v-text-field>
                 </v-flex>
-                <v-flex xs12 sm6 md4>
+                <v-flex xs4 sm6 md4>
                   <v-checkbox v-model="editedItem.star" label="★"></v-checkbox>
                 </v-flex>
-                <v-flex xs12 sm6 md4>
+                <v-flex xs4 sm6 md4>
                   <v-text-field v-model="editedItem.rank" type="number" label="ランク"></v-text-field>
+                </v-flex>
+                <v-flex xs4 sm6 md4>
+                  <v-checkbox v-model="editedItem.owner" label="管理者"></v-checkbox>
                 </v-flex>
                 <v-flex xs12>
                   <v-text-field v-model="editedItem.comment" label="コメント"></v-text-field>
@@ -58,6 +61,7 @@
         <td>{{ props.item.name }}</td>
         <td class="text-xs-right">{{ props.item.rank }}</td>
         <td>{{ props.item.star?"★":"" }}</td>
+        <td>{{ props.item.owner?"●":"" }}</td>
         <td class="justify-center layout px-0">
           <v-icon small class="mr-2" @click="editItem(props.item)">edit</v-icon>
           <v-icon small @click="deleteItem(props.item)">delete</v-icon>
@@ -115,7 +119,8 @@ export default Vue.extend({
           value: "name"
         }),
         new DataTableHeader({ text: "ランク", value: "rank" }),
-        new DataTableHeader({ text: "☆", value: "star", align: "left" })
+        new DataTableHeader({ text: "☆", value: "star", align: "left" }),
+        new DataTableHeader({ text: "管理者", value: "owner", align: "left" })
       ],
       editedIndex: NEW_ENTRY_INDEX,
       editedItem: new Player(),

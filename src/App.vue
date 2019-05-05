@@ -44,14 +44,21 @@
           <v-tab-item :value="'tab-about'">
             <v-card>
               <v-card-title>使い方</v-card-title>
-              <v-card-text>「プレイヤー一覧」でプレイヤーを登録</v-card-text>
-              <v-card-text>下のテキストエリアにタブ区切りのデータを入力して登録することも可能</v-card-text>
-              <v-card-text>ステージなど、使いたいものを選択</v-card-text>
-              <v-card-text>「ゲーム作成」の「新しいゲームを作成」、もしくは「ｽﾍﾞﾃﾗﾝﾀﾞﾑ」を押す</v-card-text>
-              <v-card-text>「新しいゲームを作成」→プレイヤーの割り振りだけ</v-card-text>
-              <v-card-text>結果が出たら「A勝利」「B勝利」のいずれかを押す</v-card-text>
-              <v-card-text>戦績一覧に追加される</v-card-text>
-              <v-card-text>※ランダム計算は過去の履歴を参照していないため重複有</v-card-text>
+              <v-card-text>
+                <ol>
+                  <li>「プレイヤー一覧」でプレイヤーを登録</li>
+                  <li>下のテキストエリアにタブ区切りのデータを入力して登録することも可能</li>
+                  <li>ステージなど、使いたいものを選択</li>
+                  <li>「ゲーム作成」の「新しいゲームを作成」、もしくは「ｽﾍﾞﾃﾗﾝﾀﾞﾑ」を押す</li>
+                  <li>「新しいゲームを作成」→プレイヤーの割り振りだけ</li>
+                  <li>結果が出たら「A勝利」「B勝利」のいずれかを押す</li>
+                  <li>戦績一覧に追加される</li>
+                </ol>
+                <ul>
+                  <li>※ランダム計算は過去の履歴を参照していないため重複有</li>
+                  <li>管理プレイヤーが10人に含まれていない場合、参戦数に関係なく9人目に追加</li>
+                </ul>
+              </v-card-text>
             </v-card>
           </v-tab-item>
           <!-- <v-tab-item v-for="i in selected" :key="i.name" :value="'tab-' + i.name">

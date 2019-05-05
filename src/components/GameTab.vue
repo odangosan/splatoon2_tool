@@ -6,23 +6,25 @@
       <v-btn
         color="success"
         :disabled="newGame.results.length==0"
-        @click="assignRandomWeapons()"
+        @click="assignRandomWeapons"
       >ﾗﾝﾀﾞﾑﾌﾞｷ</v-btn>
       <v-btn
         color="success"
         :disabled="newGame.results.length==0"
-        @click="assignRandomStage()"
+        @click="assignRandomStage"
       >ﾗﾝﾗﾑｽﾃｰｼﾞ</v-btn>
       <v-btn
         color="success"
         :disabled="newGame.results.length==0"
-        @click="assignRandomRule()"
+        @click="assignRandomRule"
       >ﾗﾝﾀﾞﾑﾙｰﾙ</v-btn>
     </v-toolbar>
     <v-toolbar flat color="white">
       <v-btn color="error" :disabled="newGame.results.length==0" @click="record('A')">A勝利</v-btn>
       <v-btn color="info" :disabled="newGame.results.length==0" @click="record('B')">B勝利</v-btn>
     </v-toolbar>
+
+    <span class="cyan lighten-4">色付きは継続</span>
     <div>
       <div>
         GAMEID:{{newGame.id|short}} |
@@ -44,7 +46,10 @@
       <template v-slot:items="props">
         <tr>
           <td class="team">{{ props.item.getTeamName()}}</td>
-          <td class="name">{{ props.item.player.name }}</td>
+          <td
+            class="name"
+            :class="{'cyan lighten-4':isContinuousPlayer( props.item.player)}"
+          >{{ props.item.player.name }}</td>
           <td class="weaponName">{{ props.item.weapon!=null?props.item.weapon.name.ja_JP:""}}</td>
         </tr>
       </template>
@@ -120,6 +125,13 @@ export default Vue.extend({
     },
     registering() {
       StorableModule.registering();
+    },
+    isContinuousPlayer(player) {
+      let result = this.aggregatesResultLast.player.find(e => {
+        return e.name == player.name;
+      });
+      if (result) return true;
+      return false;
     }
   },
   watch: {},
@@ -129,6 +141,28 @@ export default Vue.extend({
     },
     gameManager() {
       return StorableModule.StoredObject.gameManager;
+    },
+    aggregatesResult() {
+      const group = StorableModule.flatResults.reduce((result, current) => {
+        const element = result.find(p => p.gameId === current.gameId);
+        if (element) {
+          element.player.push(current.player);
+        } else {
+          let a = new aggregatesResultPlayer();
+          a.gameId = current.gameId;
+          a.createdAt = current.createdAt;
+          a.player.push(current.player);
+          result.push(a);
+        }
+        return result;
+      }, []);
+      return group;
+    },
+    aggregatesResultLast() {
+      let result = this.aggregatesResult.slice().sort((a, b) => {
+        return moment(b.createdAt).diff(moment(a.createdAt));
+      })[0];
+      return result;
     }
   },
   created() {},
@@ -137,6 +171,14 @@ export default Vue.extend({
   },
   components: {}
 });
+
+class aggregatesResultPlayer {
+  constructor(gameId = "", createdAt = "") {
+    this.gameId = gameId;
+    this.createdAt = createdAt;
+    this.player = [];
+  }
+}
 </script>
 
 
