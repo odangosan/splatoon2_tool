@@ -7,7 +7,11 @@
     </v-toolbar>
     <v-toolbar flat color="white">
       <div>
-        <p>選択内対戦数：{{aggregatesResult.length}}</p>
+        <span>[選択内対戦数：{{aggregatesResult.length}}]</span>
+        <span
+          v-for="ag in aggregatesResultRules"
+          :key="ag.rule.key"
+        >[{{ag.rule.name.ja_JP}}：{{ag.ruleCount}}]</span>
       </div>
     </v-toolbar>
     <v-data-table
@@ -208,9 +212,26 @@ export default Vue.extend({
         const element = result.find(p => p.gameId === current.gameId);
         if (element) {
         } else {
-          let a = new aggregatesResultCount();
+          let a = new aggregatesResult();
           a.gameId = current.gameId;
           a.createdAt = current.createdAt;
+          a.rule = current.rule;
+          a.stage = current.stage;
+          result.push(a);
+        }
+        return result;
+      }, []);
+      return group;
+    },
+    aggregatesResultRules() {
+      const group = this.aggregatesResult.reduce((result, current) => {
+        const element = result.find(p => p.rule.key === current.rule.key);
+        if (element) {
+          element.ruleCount++;
+        } else {
+          let a = new aggregatesResultRule();
+          a.rule = current.rule;
+          a.ruleCount++;
           result.push(a);
         }
         return result;
@@ -222,10 +243,18 @@ export default Vue.extend({
   destroyed() {},
   components: {}
 });
-class aggregatesResultCount {
-  constructor(gameId = "", createdAt = "") {
+class aggregatesResult {
+  constructor(gameId = "", createdAt = "", rule = {}, stage = {}) {
     this.gameId = gameId;
     this.createdAt = createdAt;
+    this.rule = rule;
+    this.stage = stage;
+  }
+}
+class aggregatesResultRule {
+  ruleCount = 0;
+  constructor(rule = {}) {
+    this.rule = rule;
   }
 }
 class Aggregate {
