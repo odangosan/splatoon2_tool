@@ -348,6 +348,28 @@ export class GameManager {
         });
         return results;
     }
+    latestDateResults() {
+        const group = this.flatResults().reduce((result: AggregatesResultDate[], current) => {
+            const element = result.find(p => {
+                return moment(p.date).isSame(moment(current.createdAt), "day");
+            });
+            if (element) {
+                element.results.push(current);
+            } else {
+                let a = new AggregatesResultDate();
+                a.date = moment(current.createdAt);
+                a.results.push(current);
+                result.push(a);
+            }
+            return result;
+        }, []);
+
+        group.sort((a, b) => {
+            return moment(b.date).diff(moment(a.date));
+        });
+        if (group.length < 1) return [];
+        return group[0].results;
+    }
 }
 export class StoredObject {
     players: Player[] = [];
@@ -516,6 +538,10 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         return this.StoredObject.gameManager.flatResults();
     }
 
+    get latestDateflatResults() {
+        return this.StoredObject.gameManager.latestDateResults();
+    }
+
     get AggregateStageAndRules() {
         let results: AggregateStageAndRule[] = [];
         ConstantModule.storedObject.selected.rules.forEach(r => {
@@ -549,6 +575,10 @@ export class AggregateStageAndRule {
     constructor(init?: Partial<AggregateStageAndRule>) {
         if (init)
             Object.assign(this, init);
+    }
+}
+export class AggregatesResultDate {
+    constructor(public date = {}, public results: Result[] = []) {
     }
 }
 

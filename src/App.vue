@@ -14,7 +14,7 @@
       <v-tabs dark color="cyan" show-arrows>
         <v-tabs-slider color="red"></v-tabs-slider>
         <v-tab :href="'#tab-game'">ゲーム作成</v-tab>
-        <v-tab :href="'#tab-resultToday'">今日の戦績一覧</v-tab>
+        <v-tab :href="'#tab-resultToday'">一日の戦績一覧（最新日）</v-tab>
         <v-tab :href="'#tab-result'">全ての戦績一覧</v-tab>
         <v-tab :href="'#tab-stage'">ステージ一覧</v-tab>
         <v-tab :href="'#tab-rule'">ルール一覧</v-tab>

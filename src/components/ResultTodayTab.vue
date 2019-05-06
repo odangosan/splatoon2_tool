@@ -32,7 +32,7 @@
     </v-toolbar>
     <v-data-table
       :headers="headers"
-      :items="todayResults"
+      :items="latestDateResults"
       class="elevation-1"
       item-key="id"
       :rows-per-page-items="rowsPerPageItems"
@@ -176,13 +176,35 @@ export default Vue.extend({
     },
     todayResults() {
       let result = this.results.filter(e => {
-
-        return moment().isSame(moment(e.createdAt), "d") ;
+        return moment().isSame(moment(e.createdAt), "day");
       });
       return result;
     },
+    latestDateResults() {
+      return StorableModule.latestDateResults;
+      // const group = this.results.reduce((result, current) => {
+      //   const element = result.find(p => {
+      //     return moment(p.date).isSame(moment(current.createdAt), "day");
+      //   });
+      //   if (element) {
+      //     element.results.push(current);
+      //   } else {
+      //     let a = new AggregatesResultDate();
+      //     a.date = moment(current.createdAt);
+      //     a.results.push(current);
+      //     result.push(a);
+      //   }
+      //   return result;
+      // }, []);
+
+      // group.sort((a, b) => {
+      //   return moment(b.date).diff(moment(a.date));
+      // });
+      // if (group.length < 1) return [];
+      // return group[0].results;
+    },
     aggregates() {
-      const group = this.todayResults.reduce((result, current) => {
+      const group = this.latestDateResults.reduce((result, current) => {
         const element = result.find(p => p.playerName === current.player.name);
         if (element) {
           if (!current.isSpector()) {
@@ -201,11 +223,11 @@ export default Vue.extend({
       return group;
     },
     aggregatesResult() {
-      const group = this.todayResults.reduce((result, current) => {
+      const group = this.latestDateResults.reduce((result, current) => {
         const element = result.find(p => p.gameId === current.gameId);
         if (element) {
         } else {
-          let a = new aggregatesResult();
+          let a = new AggregatesResult();
           a.gameId = current.gameId;
           a.createdAt = current.createdAt;
           a.rule = current.rule;
@@ -222,7 +244,7 @@ export default Vue.extend({
         if (element) {
           element.ruleCount++;
         } else {
-          let a = new aggregatesResultRule();
+          let a = new AggregatesResultRule();
           a.rule = current.rule;
           if (a.rule.key == "") a.rule.name.ja_JP = "指定無し";
           a.ruleCount++;
@@ -237,7 +259,13 @@ export default Vue.extend({
   destroyed() {},
   components: {}
 });
-class aggregatesResult {
+class AggregatesResultDate {
+  constructor(date = {}, results = []) {
+    this.date = date;
+    this.results = results;
+  }
+}
+class AggregatesResult {
   constructor(gameId = "", createdAt = "", rule = {}, stage = {}) {
     this.gameId = gameId;
     this.createdAt = createdAt;
@@ -245,7 +273,7 @@ class aggregatesResult {
     this.stage = stage;
   }
 }
-class aggregatesResultRule {
+class AggregatesResultRule {
   ruleCount = 0;
   constructor(rule = {}) {
     this.rule = rule;

@@ -127,10 +127,12 @@ export default Vue.extend({
       StorableModule.registering();
     },
     isContinuousPlayer(player) {
-      let result = this.aggregatesResultLast.player.find(e => {
-        return e.name == player.name;
-      });
-      if (result) return true;
+      if (this.aggregatesResultLatest) {
+        let result = this.aggregatesResultLatest.player.find(e => {
+          return e.name == player.name;
+        });
+        if (result) return true;
+      }
       return false;
     }
   },
@@ -158,7 +160,7 @@ export default Vue.extend({
       }, []);
       return group;
     },
-    aggregatesResultLast() {
+    aggregatesResultLatest() {
       let result = this.aggregatesResult.slice().sort((a, b) => {
         return moment(b.createdAt).diff(moment(a.createdAt));
       })[0];
