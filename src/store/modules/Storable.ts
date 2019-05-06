@@ -454,7 +454,6 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     }
     @Mutation
     deleteResult() {
-        localStorage.removeItem(this.STORED_OBJECT_KEY);
         this.StoredObject.gameManager = new GameManager();
         this.save();
     }
