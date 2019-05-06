@@ -51,6 +51,8 @@
             :class="{'cyan lighten-4':isContinuousPlayer( props.item.player)}"
           >{{ props.item.player.name }}</td>
           <td class="weaponName">{{ props.item.weapon!=null?props.item.weapon.name.ja_JP:""}}</td>
+          <!-- <td class>{{ getAggregateGameCountAndWinRates(props.item.player).gameCount}}</td>
+          <td class>{{ getAggregateGameCountAndWinRates(props.item.player).winRate}}</td>-->
         </tr>
       </template>
     </v-data-table>
@@ -96,6 +98,16 @@ export default Vue.extend({
           text: "ブキ",
           value: "weapon",
           align: "left"
+          // }),
+          // new DataTableHeader({
+          //   text: "参戦数",
+          //   value: "gameCount",
+          //   align: "left"
+          // }),
+          // new DataTableHeader({
+          //   text: "勝率",
+          //   value: "winRate",
+          //   align: "left"
         })
       ]
     };
@@ -134,6 +146,14 @@ export default Vue.extend({
         if (result) return true;
       }
       return false;
+    },
+    getAggregateGameCountAndWinRates(player) {
+      let find = this.aggregateGameCountAndWinRates.find(e => {
+        return e.playerName == player.name;
+      });
+      if (find)
+        return new AggregateGameCountAndWinRates(find.gameCount, find.winCount);
+      return new AggregateGameCountAndWinRates();
     }
   },
   watch: {},
@@ -143,6 +163,31 @@ export default Vue.extend({
     },
     gameManager() {
       return StorableModule.StoredObject.gameManager;
+    },
+
+    aggregateGameCountAndWinRates() {
+      const group = StorableModule.latestDateflatResults.reduce(
+        (result, current) => {
+          const element = result.find(
+            p => p.playerName === current.player.name
+          );
+          if (element) {
+            if (!current.isSpector()) {
+              element.gameCount++; // count
+              element.winCount += current.isWin() ? 1 : 0; // sum
+            }
+          } else {
+            let a = new AggregateGameCountAndWinRates();
+            a.playerName = current.player.name;
+            a.gameCount = current.isSpector() ? 0 : 1;
+            a.winCount = current.isWin() ? 1 : 0;
+            result.push(a);
+          }
+          return result;
+        },
+        []
+      );
+      return group;
     },
     aggregatesResult() {
       const group = StorableModule.flatResults.reduce((result, current) => {
@@ -179,6 +224,17 @@ class aggregatesResultPlayer {
     this.gameId = gameId;
     this.createdAt = createdAt;
     this.player = [];
+  }
+}
+
+class AggregateGameCountAndWinRates {
+  constructor(gameCount = 0, winCount = 0) {
+    this.gameCount = gameCount;
+    this.winCount = winCount;
+  }
+  get winRate() {
+    if (this.winCount == 0 || this.gameCount == 0) return 0;
+    return this.winCount / this.gameCount;
   }
 }
 </script>

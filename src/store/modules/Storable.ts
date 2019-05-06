@@ -114,15 +114,15 @@ export class Result extends Entity {
 class AggregatePlayerCount {
     playerId: string = "";
     playerName: string = "";
-    battleCount: number = 0;
+    gameCount: number = 0;
     winCount: number = 0;
     constructor(init: Partial<AggregatePlayerCount>) {
         Object.assign(this, init);
     }
     player!: Player;
     winRate() {
-        if (this.winCount == 0 || this.battleCount == 0) return 0;
-        return this.winCount / this.battleCount;
+        if (this.winCount == 0 || this.gameCount == 0) return 0;
+        return this.winCount / this.gameCount;
     }
 }
 
@@ -153,10 +153,12 @@ export class Game extends Entity {
         return array;
     }
     private rating(array: AggregatePlayerCount[]) {
+        if (array.length < 8) return array;
         array.sort((a, b) => {
             return a.winRate() - b.winRate();
-        })
-        return array;
+        });
+        let result = [array[0], array[1], array[3], array[2], array[4], array[5], array[7], array[6]];
+        return result;
     }
     assignPlayers(shuffle: SHUFFLE) {
         // StorableModule.StoredObject.players
@@ -169,7 +171,7 @@ export class Game extends Entity {
             const element = result.find((p) => p.playerName === current.player.name);
             if (element) {
                 if (!current.isSpector()) {
-                    element.battleCount++; // count
+                    element.gameCount++; // count
                     element.winCount += current.isWin() ? 1 : 0; // sum
                 }
             } else {
@@ -180,7 +182,7 @@ export class Game extends Entity {
                     result.push(new AggregatePlayerCount({
                         player: current.player,
                         playerName: current.player.name,
-                        battleCount: current.isSpector() ? 0 : 1,
+                        gameCount: current.isSpector() ? 0 : 1,
                         winCount: current.isWin() ? 1 : 0
                     }));
                 }
@@ -199,7 +201,7 @@ export class Game extends Entity {
         })
 
         group.sort((a, b) => {
-            return a.battleCount - b.battleCount;
+            return a.gameCount - b.gameCount;
         })
         let assignablePlayer = group.slice(0, 10);
 
@@ -207,8 +209,6 @@ export class Game extends Entity {
         if (assignablePlayer.length <= 8) {
             if (shuffle == SHUFFLE.RANDOM) {
                 playablePlayer = this.random(assignablePlayer);
-            } else if (shuffle == SHUFFLE.RATING) {
-                playablePlayer = this.rating(assignablePlayer);
             } else {
                 playablePlayer = this.random(assignablePlayer);
             }

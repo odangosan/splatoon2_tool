@@ -20,7 +20,7 @@
       <template v-slot:items="props">
         <tr>
           <td>{{ props.item.playerName }}</td>
-          <td>{{ props.item.battleCount }}</td>
+          <td>{{ props.item.gameCount }}</td>
           <td>{{ props.item.winCount }}</td>
           <td>{{ props.item.winRate }}</td>
         </tr>
@@ -137,7 +137,7 @@ export default Vue.extend({
         }),
         new DataTableHeader({
           text: "参戦数",
-          value: "battleCount",
+          value: "gameCount",
           align: "left"
         }),
         new DataTableHeader({
@@ -208,13 +208,13 @@ export default Vue.extend({
         const element = result.find(p => p.playerName === current.player.name);
         if (element) {
           if (!current.isSpector()) {
-            element.battleCount++; // count
+            element.gameCount++; // count
             element.winCount += current.isWin() ? 1 : 0; // sum
           }
         } else {
           let a = new Aggregate();
           a.playerName = current.player.name;
-          a.battleCount = current.isSpector() ? 0 : 1;
+          a.gameCount = current.isSpector() ? 0 : 1;
           a.winCount = current.isWin() ? 1 : 0;
           result.push(a);
         }
@@ -223,8 +223,6 @@ export default Vue.extend({
       return group;
     },
     aggregatesResult() {
-      console.log(this.latestDateResults);
-
       const group = this.latestDateResults.reduce((result, current) => {
         const element = result.find(p => p.gameId === current.gameId);
         if (element) {
@@ -283,11 +281,11 @@ class AggregatesResultRule {
 }
 class Aggregate {
   playerName = "";
-  battleCount = 0;
+  gameCount = 0;
   winCount = 0;
   get winRate() {
-    if (this.winCount == 0 || this.battleCount == 0) return 0;
-    return this.winCount / this.battleCount;
+    if (this.winCount == 0 || this.gameCount == 0) return 0;
+    return this.winCount / this.gameCount;
   }
 }
 </script>
