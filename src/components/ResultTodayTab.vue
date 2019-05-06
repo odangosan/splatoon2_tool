@@ -181,7 +181,7 @@ export default Vue.extend({
       return result;
     },
     latestDateResults() {
-      return StorableModule.latestDateResults;
+      return StorableModule.latestDateflatResults;
       // const group = this.results.reduce((result, current) => {
       //   const element = result.find(p => {
       //     return moment(p.date).isSame(moment(current.createdAt), "day");
@@ -223,6 +223,8 @@ export default Vue.extend({
       return group;
     },
     aggregatesResult() {
+      console.log(this.latestDateResults);
+
       const group = this.latestDateResults.reduce((result, current) => {
         const element = result.find(p => p.gameId === current.gameId);
         if (element) {
