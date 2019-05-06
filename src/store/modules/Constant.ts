@@ -1,11 +1,9 @@
 import Vue from 'vue';
-import Vuex from 'vuex';
 import Axios from 'axios';
 import { StoredObjectMethods } from "@/models/StoredObject"
 import { Module, VuexModule, Mutation, Action, getModule } from 'vuex-module-decorators'
 
-Vue.use(Vuex);
-const store = new Vuex.Store({})
+import store from "@/store/index"
 
 export class StoredConstantObject {
     timestamp: number = 0;

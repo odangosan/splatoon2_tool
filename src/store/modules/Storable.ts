@@ -1,12 +1,10 @@
 import Vue from 'vue';
-import Vuex from 'vuex';
 import moment from "moment";
+import store from "@/store/index"
 moment.locale('ja')
 import { StoredObjectMethods } from "@/models/StoredObject"
 
-Vue.use(Vuex);
 import { Module, VuexModule, Mutation, Action, getModule } from 'vuex-module-decorators'
-const store = new Vuex.Store({})
 
 class Entity {
     constructor() {
