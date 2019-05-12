@@ -165,7 +165,7 @@ export class Game extends Entity {
         let tmpPlayers = StorableModule.StoredObject.selectedPlayers.slice();
 
         //参加数集計
-        const group = StorableModule.StoredObject.gameManager.flatResults().reduce((result: AggregatePlayerCount[], current) => {
+        const group = StorableModule.StoredObject.gameManager.todayResults().reduce((result: AggregatePlayerCount[], current) => {
             const element = result.find((p) => p.playerName === current.player.name);
             if (element) {
                 if (!current.isSpector()) {
@@ -345,6 +345,12 @@ export class GameManager {
             results = results.concat(e.results);
         });
         return results;
+    }
+    todayResults() {
+        let result = this.flatResults().filter(e => {
+            return moment().isSame(moment(e.createdAt), "day");
+        });
+        return result;
     }
     latestDateResults() {
         const group = this.flatResults().reduce((result: AggregatesResultDate[], current) => {
