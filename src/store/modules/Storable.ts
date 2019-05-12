@@ -510,6 +510,13 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     }
     @Action
     addPlayer(player: Player) {
+        let find = this.StoredObject.players.find(e => {
+            return e.name == player.name;
+        })
+        if (find) {
+            console.log("already exists.");
+            return;
+        }
         this.StoredObject.players.push(player);
         this.StoredObject.selectedPlayers.push(player);
         this.save();
