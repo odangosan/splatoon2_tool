@@ -62,6 +62,12 @@
                   <li>※ランダム計算は過去の履歴を参照していないため重複有</li>
                   <li>管理プレイヤーが10人に含まれていない場合、参戦数に関係なく9人目に追加</li>
                 </ul>
+                <ul>
+                  <li>「ﾁｬｰｼﾞｬｰﾀﾞｹｶｸﾘﾂﾊﾝﾌﾞﾝボタン」</li>
+                  <ul>
+                    <li>チャージャーが割り当てられたときもう一度抽選を行います</li>
+                  </ul>
+                </ul>
               </v-card-text>
             </v-card>
           </v-tab-item>
@@ -132,11 +138,13 @@ export default Vue.extend({
   }
 });
 </script>
- <style lang="scss" >
+ <style lang="scss">
 table.v-table tbody td,
 table.v-table tbody th,
 table.v-datatable {
-  height: 18px;
+  height: 14px;
+  font-size: 10px;
+  font-weight: bold;
   .name {
     width: 75px;
     padding: 0px 4px !important;

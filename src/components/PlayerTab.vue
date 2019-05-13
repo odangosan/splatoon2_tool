@@ -100,13 +100,13 @@ export default Vue.extend({
   data() {
     return {
       pagination: {
-        rowsPerPage: 15
+        rowsPerPage: 30
       },
       rowsPerPageItems: [
         5,
         10,
-        15,
-        25,
+        20,
+        30,
         { text: "$vuetify.dataIterator.rowsPerPageAll", value: -1 }
       ],
       search: "",

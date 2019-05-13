@@ -259,12 +259,41 @@ export class Game extends Entity {
         this.results.forEach(e => {
             if (e.team != TEAM.WATCHING) {
                 let array = ConstantModule.storedObject.selected.weaponRoots.length == 0 ? ConstantModule.storedObject.constant.weaponRoots.slice() : ConstantModule.storedObject.selected.weaponRoots.slice();
-
                 array = this.random(array);
                 array = this.random(array);
-                // let index = Math.floor(Math.random() * array.length);
-                // let weapon = array[index];
                 let weapon = array[0];
+                e.weapon = weapon;
+            }
+        })
+    }
+    assignRandomWeaponsOperation() {
+        this.results.forEach(e => {
+            if (e.team != TEAM.WATCHING) {
+                let array = ConstantModule.storedObject.selected.weaponRoots.length == 0 ? ConstantModule.storedObject.constant.weaponRoots.slice() : ConstantModule.storedObject.selected.weaponRoots.slice();
+                // let group = StorableModule.StoredObject.gameManager.todayResults().reduce((result: AggregateTodayUseCount[], current) => {
+                //     if (current.team == TEAM.A || current.team == TEAM.B) {
+                //         const element = result.find(p => {
+                //             return p.player.id == current.player.id;
+                //         });
+                //         if (element) {
+                //             element.weapons.push(current.weapon);
+                //         } else {
+                //             let a = new AggregateTodayUseCount();
+                //             a.player = current.player;
+                //             a.weapons.push(current.weapon);
+                //             result.push(a);
+                //         }
+                //     }
+                //     return result;
+                // }, []);
+                // let count = group.find(g => {
+                //     return g.player.name == e.player.name;
+                // })
+                array = this.random(array);
+                let weapon = array[0];
+                if (array[0].type.category.key == "charger") {
+                    array = this.random(array);
+                }
                 e.weapon = weapon;
             }
         })
@@ -289,8 +318,6 @@ export class Game extends Entity {
     */
     assignRandomRule() {
         let array = ConstantModule.storedObject.selected.rules.length == 0 ? ConstantModule.storedObject.constant.rules.slice() : ConstantModule.storedObject.selected.rules.slice();
-        console.log(array);
-
         array = this.random(array);
         array = this.random(array);
         // let index = Math.floor(Math.random() * array.length);
@@ -308,6 +335,11 @@ export class Game extends Entity {
             e.winning = winning;
         })
     }
+}
+
+export class AggregateTodayUseCount {
+    player!: Player;
+    weapons: WeaponRoot[] = [];
 }
 
 import { WeaponRoot } from "@/store/modules/Constant"
@@ -330,6 +362,9 @@ export class GameManager {
     }
     assignRandomWeapons() {
         this.newGame.assignRandomWeapons()
+    }
+    assignRandomWeaponsOperation() {
+        this.newGame.assignRandomWeaponsOperation()
     }
     registering() {
         this.games.push(this.newGame);
@@ -425,6 +460,11 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         this.save();
     }
     @Action
+    assignRandomWeaponsOperation() {
+        this.StoredObject.gameManager.newGame.assignRandomWeaponsOperation();
+        this.save();
+    }
+    @Action
     assignRandomStage() {
         this.StoredObject.gameManager.newGame.assignRandomStage();
         this.save();
@@ -456,7 +496,7 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
         this.SET_STORED_OBJECT(new StoredObject());
         this.save();
     }
-    @Mutation
+    @Action
     deleteResult() {
         this.StoredObject.gameManager = new GameManager();
         this.save();
@@ -550,6 +590,10 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
 
     get latestDateflatResults() {
         return this.StoredObject.gameManager.latestDateResults();
+    }
+
+    get todayResults() {
+        return this.StoredObject.gameManager.todayResults();
     }
 
     get AggregateStageAndRules() {

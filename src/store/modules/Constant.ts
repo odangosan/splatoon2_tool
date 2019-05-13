@@ -77,6 +77,25 @@ export default class Constant extends VuexModule implements StoredObjectMethods 
             this.storedObject.selected.weaponRoots = result.data as WeaponRoot[];
         }
     }
+    get weaponsOfKinds() {
+        const group = this.storedObject.constant.weaponRoots.reduce((result: AggregateKinds[], current) => {
+            const element = result.find((p) => p.type.key === current.type.key);
+            if (element) {
+                element.count++;
+            } else {
+                let ag = new AggregateKinds()
+                ag.type = current.type;
+
+                ag.count++;
+                result.push(ag);
+            }
+            return result;
+        }, []);
+        group.forEach(element => {
+            console.log(element.type.category.key, element.count);
+        });
+        return group;
+    }
     @Action
     async fetchStages() {
         let url = "https://stat.ink/api/v2/stage";
@@ -152,6 +171,11 @@ export default class Constant extends VuexModule implements StoredObjectMethods 
     get rules() {
         return this.storedObject.constant.rules;
     }
+}
+
+export class AggregateKinds {
+    type: Type = new Type();
+    count: number = 0;
 }
 
 export const ConstantModule = getModule(Constant);

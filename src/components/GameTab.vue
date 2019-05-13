@@ -9,6 +9,13 @@
         @click="assignRandomWeapons"
       >ﾗﾝﾀﾞﾑﾌﾞｷ</v-btn>
       <v-btn
+        color="warning"
+        :disabled="newGame.results.length==0"
+        @click="assignRandomWeaponsOperation"
+      >ﾁｬｰｼﾞｬｰﾀﾞｹｶｸﾘﾂﾊﾝﾌﾞﾝ</v-btn>
+    </v-toolbar>
+    <v-toolbar flat color="white">
+      <v-btn
         color="success"
         :disabled="newGame.results.length==0"
         @click="assignRandomStage"
@@ -116,6 +123,9 @@ export default Vue.extend({
     assignRandomWeapons() {
       StorableModule.assignRandomWeapons();
     },
+    assignRandomWeaponsOperation() {
+      StorableModule.assignRandomWeaponsOperation();
+    },
     assignRandomStage() {
       StorableModule.assignRandomStage();
     },
@@ -139,12 +149,10 @@ export default Vue.extend({
       StorableModule.registering();
     },
     isContinuousPlayer(player) {
-      if (this.aggregatesResultLatest) {
-        let result = this.aggregatesResultLatest.player.find(e => {
-          return e.name == player.name;
-        });
-        if (result) return true;
-      }
+      let result = this.aggregatesResultLatest.player.find(e => {
+        return e.name == player.name;
+      });
+      if (result) return true;
       return false;
     },
     getAggregateGameCountAndWinRates(player) {
@@ -190,12 +198,12 @@ export default Vue.extend({
       return group;
     },
     aggregatesResult() {
-      const group = StorableModule.flatResults.reduce((result, current) => {
+      const group = StorableModule.todayResults.reduce((result, current) => {
         const element = result.find(p => p.gameId === current.gameId);
         if (element) {
           element.player.push(current.player);
         } else {
-          let a = new aggregatesResultPlayer();
+          let a = new AggregatesResultPlayer();
           a.gameId = current.gameId;
           a.createdAt = current.createdAt;
           a.player.push(current.player);
@@ -208,8 +216,8 @@ export default Vue.extend({
     aggregatesResultLatest() {
       let result = this.aggregatesResult.slice().sort((a, b) => {
         return moment(b.createdAt).diff(moment(a.createdAt));
-      })[0];
-      return result;
+      });
+      return result.length > 0 ? result[0] : new AggregatesResultPlayer();
     }
   },
   created() {},
@@ -219,7 +227,7 @@ export default Vue.extend({
   components: {}
 });
 
-class aggregatesResultPlayer {
+class AggregatesResultPlayer {
   constructor(gameId = "", createdAt = "") {
     this.gameId = gameId;
     this.createdAt = createdAt;
@@ -238,5 +246,3 @@ class AggregateGameCountAndWinRates {
   }
 }
 </script>
-
-

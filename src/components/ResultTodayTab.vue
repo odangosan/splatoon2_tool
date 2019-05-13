@@ -32,7 +32,7 @@
     </v-toolbar>
     <v-data-table
       :headers="headers"
-      :items="latestDateResults"
+      :items="todayResults"
       class="elevation-1"
       item-key="id"
       :rows-per-page-items="rowsPerPageItems"
@@ -74,7 +74,7 @@ export default Vue.extend({
   data() {
     return {
       pagination: {
-        rowsPerPage: 50
+        rowsPerPage: 100
       },
       paginationAggregates: {
         rowsPerPage: 50
@@ -175,10 +175,7 @@ export default Vue.extend({
       return StorableModule.flatResults;
     },
     todayResults() {
-      let result = this.results.filter(e => {
-        return moment().isSame(moment(e.createdAt), "day");
-      });
-      return result;
+      return StorableModule.todayResults;
     },
     latestDateResults() {
       return StorableModule.latestDateflatResults;
@@ -204,7 +201,7 @@ export default Vue.extend({
       // return group[0].results;
     },
     aggregates() {
-      const group = this.latestDateResults.reduce((result, current) => {
+      const group = this.todayResults.reduce((result, current) => {
         const element = result.find(p => p.playerName === current.player.name);
         if (element) {
           if (!current.isSpector()) {
@@ -223,7 +220,7 @@ export default Vue.extend({
       return group;
     },
     aggregatesResult() {
-      const group = this.latestDateResults.reduce((result, current) => {
+      const group = this.todayResults.reduce((result, current) => {
         const element = result.find(p => p.gameId === current.gameId);
         if (element) {
         } else {
