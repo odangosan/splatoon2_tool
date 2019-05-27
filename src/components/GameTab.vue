@@ -141,6 +141,7 @@ export default Vue.extend({
     record(team) {
       StorableModule.assignWinning(team);
       confirm("結果を保存しますか？") && this.registering();
+      console.log(StorableModule.StoredObject.gameManager.games);
     },
     create() {
       StorableModule.initGame();
@@ -149,10 +150,16 @@ export default Vue.extend({
       StorableModule.registering();
     },
     isContinuousPlayer(player) {
-      let result = this.aggregatesResultLatest.player.find(e => {
-        return e.name == player.name;
+      let result = this.aggregatesResultLatest.results.find(e => {
+        return e.player.name == player.name;
       });
-      if (result) return true;
+      if (result)
+        if (
+          result.team == TEAM_A ||
+          result.team == TEAM_B ||
+          result.team == TEAM_WATHCING
+        )
+          if (result) return true;
       return false;
     },
     getAggregateGameCountAndWinRates(player) {
@@ -201,12 +208,12 @@ export default Vue.extend({
       const group = StorableModule.todayResults.reduce((result, current) => {
         const element = result.find(p => p.gameId === current.gameId);
         if (element) {
-          element.player.push(current.player);
+          element.results.push(current);
         } else {
           let a = new AggregatesResultPlayer();
           a.gameId = current.gameId;
           a.createdAt = current.createdAt;
-          a.player.push(current.player);
+          a.results.push(current);
           result.push(a);
         }
         return result;
@@ -231,12 +238,13 @@ class AggregatesResultPlayer {
   constructor(gameId = "", createdAt = "") {
     this.gameId = gameId;
     this.createdAt = createdAt;
-    this.player = [];
+    this.results = [];
   }
 }
 
 class AggregateGameCountAndWinRates {
-  constructor(gameCount = 0, winCount = 0) {
+  constructor(playerName = "", gameCount = 0, winCount = 0) {
+    this.playerName = playerName;
     this.gameCount = gameCount;
     this.winCount = winCount;
   }
@@ -245,4 +253,8 @@ class AggregateGameCountAndWinRates {
     return this.winCount / this.gameCount;
   }
 }
+
+const TEAM_A = 0;
+const TEAM_B = 1;
+const TEAM_WATHCING = 2;
 </script>

@@ -20,7 +20,7 @@
       <template v-slot:items="props">
         <tr>
           <td>{{ props.item.playerName }}</td>
-          <td>{{ props.item.gameCount }}</td>
+          <td>{{ props.item.gameCount }} (+{{ props.item.subCount }})</td>
           <td>{{ props.item.winCount }}</td>
           <td>{{ props.item.winRate }}</td>
         </tr>
@@ -204,15 +204,18 @@ export default Vue.extend({
       const group = this.todayResults.reduce((result, current) => {
         const element = result.find(p => p.playerName === current.player.name);
         if (element) {
-          if (!current.isSpector()) {
+          if (current.isPlayed()) {
             element.gameCount++; // count
             element.winCount += current.isWin() ? 1 : 0; // sum
+          } else if (current.isSubPlayed()) {
+            element.subCount++; // count
           }
         } else {
           let a = new Aggregate();
           a.playerName = current.player.name;
-          a.gameCount = current.isSpector() ? 0 : 1;
+          a.gameCount = current.isPlayed() ? 1 : 0;
           a.winCount = current.isWin() ? 1 : 0;
+          a.subCount = current.isSubPlayed() ? 1 : 0;
           result.push(a);
         }
         return result;
@@ -280,6 +283,7 @@ class Aggregate {
   playerName = "";
   gameCount = 0;
   winCount = 0;
+  subCount = 0;
   get winRate() {
     if (this.winCount == 0 || this.gameCount == 0) return 0;
     return this.winCount / this.gameCount;

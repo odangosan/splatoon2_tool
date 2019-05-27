@@ -58,7 +58,7 @@ export class Player extends Entity {
     }
 }
 enum TEAM {
-    A, B, WATCHING, NONE
+    A, B, WATCHING, NONE, EXIST, Z
 }
 
 import { StageRoot, Rule, ConstantModule } from "@/store/modules/Constant"
@@ -80,6 +80,9 @@ export class Result extends Entity {
             case TEAM.A:
             case TEAM.B:
                 return TEAM[this.team];
+            case TEAM.EXIST: return "外";
+            case TEAM.Z: return "仮"
+            case TEAM.WATCHING: return "観"
             default:
                 return "観";
         }
@@ -97,7 +100,16 @@ export class Result extends Entity {
         return this.team == this.winning;
     }
     isSpector() {
-        return this.team == TEAM.WATCHING;
+        return this.team == TEAM.WATCHING || this.team == TEAM.EXIST;
+    }
+    isTemporaryTeam() {
+        return this.team == TEAM.Z;
+    }
+    isPlayed() {
+        return this.team == TEAM.A || this.team == TEAM.B;
+    }
+    isSubPlayed() {
+        return this.team == TEAM.Z;
     }
     get isWinText() {
         switch (this.team) {
@@ -105,6 +117,8 @@ export class Result extends Entity {
             case TEAM.B:
                 return this.team == this.winning ? "勝" : "負";
             case TEAM.WATCHING:
+            case TEAM.EXIST:
+            case TEAM.Z:
                 return "----";
         }
     }
@@ -163,82 +177,116 @@ export class Game extends Entity {
         //playersから参戦数の低い順番に10人まで選出
         //resultに割り当てる、チーム分けをする
         let tmpPlayers = StorableModule.StoredObject.selectedPlayers.slice();
+        if (StorableModule.StoredObject.gameManager.todayGames().length == 0) {
+            tmpPlayers = this.random(tmpPlayers);
+        }
+        let todaysPlayerGameCountAggregates = StorableModule.StoredObject.gameManager.todaysPlayerGameCountAggregates();
+        let maxGameCount = Math.max(...todaysPlayerGameCountAggregates.map(p => p.gameCount));
+        maxGameCount = maxGameCount != 0 ? maxGameCount - 1 : 1;
+        // 途中参加の人に対して参加済みの補正をかける
+        // 現在の参戦最大数まで参加していたことにする
+        let counter = 0;
+        StorableModule.StoredObject.gameManager.todayGames().forEach(game => {
+            if (counter >= maxGameCount) {
+                tmpPlayers.forEach(player => {
+                    let exists = game.results.find(r => {
+                        return r.player.name == player.name;
+                    });
+                    if (exists == undefined) {
+                        let result = new Result({
+                            gameId: game.id,
+                            team: TEAM.EXIST,
+                            winning: game.winning,
+                            stage: game.stage,
+                            rule: game.rule,
+                            player: player
+                        });
+                        game.results.push(result);
+                    }
+                })
+            } else {
+                tmpPlayers.forEach(player => {
+                    let exists = game.results.find(r => {
+                        return r.player.name == player.name;
+                    });
+                    if (exists == undefined) {
+                        let result = new Result({
+                            gameId: game.id,
+                            team: TEAM.Z,
+                            winning: game.winning,
+                            stage: game.stage,
+                            rule: game.rule,
+                            player: player
+                        });
+                        game.results.push(result);
+                    }
+                })
+            }
+            counter++;
+        });
 
         //参加数集計
-        const group = StorableModule.StoredObject.gameManager.todayResults().reduce((result: AggregatePlayerCount[], current) => {
-            const element = result.find((p) => p.playerName === current.player.name);
-            if (element) {
-                if (!current.isSpector()) {
-                    element.gameCount++; // count
-                    element.winCount += current.isWin() ? 1 : 0; // sum
-                }
-            } else {
-                let find = tmpPlayers.find(e => {
-                    return e.name == current.player.name;
-                })
-                if (find) {
-                    result.push(new AggregatePlayerCount({
-                        player: current.player,
-                        playerName: current.player.name,
-                        gameCount: current.isSpector() ? 0 : 1,
-                        winCount: current.isWin() ? 1 : 0
-                    }));
-                }
-            }
-            return result;
-        }, []);
+        //今回参加するユーザーだけの参戦数を集計する
+        const allAssignableplayer = StorableModule.StoredObject.gameManager.todaysPlayerGameCountAggregates();
 
+        // 今参加を表明しているが集計にいなかったプレイヤーを集計に合成する
         tmpPlayers.forEach(e => {
-            let find = group.find(g => {
+            let find = allAssignableplayer.find(g => {
                 return g.playerName == e.name;
             })
             if (find == undefined) {
                 let aggregate = new AggregatePlayerCount({ player: e, playerId: e.id, playerName: e.name })
-                group.push(aggregate);
+                allAssignableplayer.push(aggregate);
             }
         })
 
-        group.sort((a, b) => {
+        allAssignableplayer.sort((a, b) => {
             return a.gameCount - b.gameCount;
         })
-        let assignablePlayer = group.slice(0, 10);
+        let assignablePlayer = allAssignableplayer.slice(0, 10);
 
-        let playablePlayer = [];
-        if (assignablePlayer.length <= 8) {
-            if (shuffle == SHUFFLE.RANDOM) {
-                playablePlayer = this.random(assignablePlayer);
-            } else {
-                playablePlayer = this.random(assignablePlayer);
-            }
+        let joinnedPlayer = [];
+        if (shuffle == SHUFFLE.RANDOM) {
+            joinnedPlayer = this.random(assignablePlayer.slice(0, 8)) as AggregatePlayerCount[];
+        } else if (shuffle == SHUFFLE.RATING) {
+            joinnedPlayer = this.rating(assignablePlayer.slice(0, 8)) as AggregatePlayerCount[];
         } else {
-            if (shuffle == SHUFFLE.RANDOM) {
-                playablePlayer = this.random(assignablePlayer.slice(0, 8)) as AggregatePlayerCount[];
-            } else if (shuffle == SHUFFLE.RATING) {
-                playablePlayer = this.rating(assignablePlayer.slice(0, 8)) as AggregatePlayerCount[];
-            } else {
-                playablePlayer = this.random(assignablePlayer.slice(0, 8)) as AggregatePlayerCount[];
-            }
+            joinnedPlayer = this.random(assignablePlayer.slice(0, 8)) as AggregatePlayerCount[];
+        }
 
-            let spectorPlayer = assignablePlayer.slice(8, 10);
-            playablePlayer = playablePlayer.concat(spectorPlayer);
-            //9人以上で管理者がいない場合に代入する
-            let admin = StorableModule.StoredObject.players.find(e => {
-                return e.owner;
+        let spectorPlayer = assignablePlayer.slice(8, 10);
+        joinnedPlayer = joinnedPlayer.concat(spectorPlayer);
+
+        //9人以上で管理者がいない場合に代入する
+        let admin = StorableModule.StoredObject.players.find(e => {
+            return e.owner;
+        })
+        let swapPlayer: Player;
+        if (admin) {
+            let hoge = joinnedPlayer.find(e => {
+                return e.playerName == admin!.name;
             })
-            if (admin) {
-                let hoge = playablePlayer.find(e => {
-                    return e.playerName == admin!.name;
+            if (hoge) {
+                console.log("find");
+
+            } else {
+                console.log("not find");
+                swapPlayer = joinnedPlayer[8].player;
+                console.log(swapPlayer.name);
+
+                allAssignableplayer.forEach(e => {
+                    if (e.player.name == admin!.name) {
+                        e.player = swapPlayer;
+                    }
                 })
-                if (hoge) {
-                } else {
-                    playablePlayer[8].player = admin;
-                }
+                joinnedPlayer[8].player = admin;
             }
         }
-        let maxPlayer = playablePlayer.length > 10 ? 10 : playablePlayer.length;
+        //振り分け
+        let maxPlayer = joinnedPlayer.length > 10 ? 10 : joinnedPlayer.length;
         for (let index = 0; index < maxPlayer; index++) {
             let result = new Result({ gameId: this.id });
-            result.player = playablePlayer[index].player;
+            result.player = joinnedPlayer[index].player;
             if (index > 7)
                 result.team = TEAM.WATCHING;
             else if (index % 2 == 0)
@@ -247,6 +295,18 @@ export class Game extends Entity {
                 result.team = TEAM.B;
             this.results.push(result);
         }
+
+
+        let existsPlayer = allAssignableplayer.slice(10, 100);
+        console.log(allAssignableplayer);
+        console.log(existsPlayer);
+        existsPlayer.forEach(e => {
+            let result = new Result({ gameId: this.id });
+            result.player = e.player;
+            result.team = TEAM.EXIST;
+            this.results.push(result);
+        })
+
         this.results.sort((a, b) => {
             return a.team - b.team;
         })
@@ -257,7 +317,7 @@ export class Game extends Entity {
     */
     assignRandomWeapons() {
         this.results.forEach(e => {
-            if (e.team != TEAM.WATCHING) {
+            if (e.team == TEAM.A || e.team == TEAM.B) {
                 let array = ConstantModule.storedObject.selected.weaponRoots.length == 0 ? ConstantModule.storedObject.constant.weaponRoots.slice() : ConstantModule.storedObject.selected.weaponRoots.slice();
                 array = this.random(array);
                 array = this.random(array);
@@ -268,7 +328,7 @@ export class Game extends Entity {
     }
     assignRandomWeaponsOperation() {
         this.results.forEach(e => {
-            if (e.team != TEAM.WATCHING) {
+            if (e.team == TEAM.A || e.team == TEAM.B) {
                 let array = ConstantModule.storedObject.selected.weaponRoots.length == 0 ? ConstantModule.storedObject.constant.weaponRoots.slice() : ConstantModule.storedObject.selected.weaponRoots.slice();
                 // let group = StorableModule.StoredObject.gameManager.todayResults().reduce((result: AggregateTodayUseCount[], current) => {
                 //     if (current.team == TEAM.A || current.team == TEAM.B) {
@@ -304,13 +364,15 @@ export class Game extends Entity {
     assignRandomStage() {
         let array = ConstantModule.storedObject.selected.stageRoots.length == 0 ? ConstantModule.storedObject.constant.stageRoots.slice() : ConstantModule.storedObject.selected.stageRoots.slice();
         array = this.random(array);
-        array = this.random(array);
-        // let index = Math.floor(Math.random() * array.length);
-        // let stage = array[index];
-        let stage = array[0];
-        this.stage = stage;
+        // let tempStage = StorableModule.StoredObject.gameManager.todayGames().find(game => {
+        //     return game.stage.key == array[0].key;
+        // });
+
+        // this.stage = tempStage == undefined ? array[0] : this.random(array)[0];
+
+        this.stage = array[0];
         this.results.forEach(e => {
-            e.stage = stage;
+            e.stage = this.stage;
         })
     }
     /**
@@ -319,15 +381,15 @@ export class Game extends Entity {
     assignRandomRule() {
         let array = ConstantModule.storedObject.selected.rules.length == 0 ? ConstantModule.storedObject.constant.rules.slice() : ConstantModule.storedObject.selected.rules.slice();
         array = this.random(array);
-        array = this.random(array);
-        // let index = Math.floor(Math.random() * array.length);
-        // let rule = array[index];
-        let rule = array[0];
-        this.rule = rule;
+        // let tempRule = StorableModule.StoredObject.gameManager.todayGames().find(game => {
+        //     return game.rule.key == array[0].key;
+        // });
+
+        // this.rule = tempRule == undefined ? array[0] : this.random(array)[0];
+        this.rule = array[0];
         this.results.forEach(e => {
-            e.rule = rule;
+            e.rule = this.rule;
         })
-        // StorableModule.StoredObject.gameManager.games.
     }
     assignWinning(winning: TEAM) {
         this.winning = winning;
@@ -387,6 +449,42 @@ export class GameManager {
         });
         return result;
     }
+    todayGames() {
+        let result = this.games.filter(e => {
+            return moment().isSame(moment(e.createdAt), "day");
+        });
+        return result;
+    }
+    todaysPlayerGameCountAggregates() {
+        let tmpPlayers = StorableModule.StoredObject.selectedPlayers.slice();
+
+        //参加数集計
+        //今回参加するユーザーだけの参戦数を集計する
+        const group = this.todayResults().reduce((result: AggregatePlayerCount[], current) => {
+            const element = result.find((p) => p.playerName === current.player.name);
+            if (element) {
+                if (!current.isSpector()) {
+                    element.gameCount++; // count
+                    element.winCount += current.isWin() ? 1 : 0; // sum
+                }
+            } else {
+                let find = tmpPlayers.find(e => {
+                    return e.name == current.player.name;
+                })
+                if (find) {
+                    result.push(new AggregatePlayerCount({
+                        player: current.player,
+                        playerName: current.player.name,
+                        gameCount: current.isSpector() ? 0 : 1,
+                        winCount: current.isWin() ? 1 : 0
+                    }));
+                }
+            }
+            return result;
+        }, []);
+        return group;
+    }
+
     latestDateResults() {
         const group = this.flatResults().reduce((result: AggregatesResultDate[], current) => {
             const element = result.find(p => {
@@ -595,6 +693,22 @@ export default class Storable extends VuexModule implements StoredObjectMethods 
     get todayResults() {
         return this.StoredObject.gameManager.todayResults();
     }
+    get aggregatesResultToday() {
+        const group = this.todayResults.reduce((result: AggregatesResult[], current) => {
+            const element = result.find(p => p.gameId === current.gameId);
+            if (element) {
+            } else {
+                let a = new AggregatesResult();
+                a.gameId = current.gameId;
+                a.createdAt = current.createdAt;
+                a.rule = current.rule;
+                a.stage = current.stage;
+                result.push(a);
+            }
+            return result;
+        }, []);
+        return group;
+    }
 
     get AggregateStageAndRules() {
         let results: AggregateStageAndRule[] = [];
@@ -636,4 +750,12 @@ export class AggregatesResultDate {
     }
 }
 
+export class AggregatesResult {
+    constructor(public gameId = "", public createdAt = moment(), public rule = {}, public stage = {}) {
+        this.gameId = gameId;
+        this.createdAt = createdAt;
+        this.rule = rule;
+        this.stage = stage;
+    }
+}
 export const StorableModule = getModule(Storable);
